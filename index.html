@@ -1461,7 +1461,7 @@
         render();
         return;
       }
-      finishRun("Retreat", 0.2);
+      finishRun("Retreat", 0.4);
     }
 
     function retreat() {
@@ -1471,10 +1471,13 @@
     function finishRun(result, lootRate = 1) {
       const originalDeck = [...state.deck];
       const remainingCards = [...run.deck, ...run.hand];
-      run.keptGold = result === "Defeat" ? 0 : Math.floor(run.goldEarned * lootRate);
-      run.keptNewCards = result === "Defeat" ? [] : run.newCards.filter(() => Math.random() < lootRate);
+      const effectiveLootRate = result === "Defeat" ? 0.1 : lootRate;
+      run.keptGold = Math.floor(run.goldEarned * effectiveLootRate);
+      run.keptNewCards = run.newCards.filter(() => Math.random() < effectiveLootRate);
       if (result === "Defeat") {
         originalDeck.forEach(id => removeOne(state.collection, id));
+        state.gold += run.keptGold;
+        state.collection.push(...run.keptNewCards);
         state.deck = [];
       } else {
         run.lostCards.forEach(id => removeOne(state.collection, id));
@@ -1513,7 +1516,7 @@
         <div>討伐結果：<strong>${resultText}</strong></div>
         <div>挑戰層數：${run.floor}</div>
         <div>賺取金幣：<span class="gold">${run.keptGold ?? run.goldEarned}</span></div>
-        <div>獲得卡牌：${result === "Defeat" ? "無" : renderCardSummary(run.keptNewCards ?? run.newCards)}</div>
+        <div>獲得卡牌：${renderCardSummary(run.keptNewCards ?? run.newCards)}</div>
         <div>失去卡牌：${renderCardSummary(lost)}</div>
         <div>剩餘卡牌：${result === "Defeat" ? "無，本次討伐編組全數失去" : renderCardSummary(remainingCards)}</div>
       `;
@@ -1634,7 +1637,7 @@
     });
     els.retreatAfterWinBtn.addEventListener("click", () => {
       if (!run || !run.awaitingPostWinChoice) return;
-      finishRun("Retreat", 0.4);
+      finishRun("Retreat", 0.6);
     });
     els.continueAfterWinBtn.addEventListener("click", continueAfterWin);
     els.scoutRetreatBtn.addEventListener("click", scoutRetreat);
