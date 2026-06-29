@@ -1,0 +1,1669 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>In-Between Hero MVP</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #14110f;
+      --panel: #211b18;
+      --panel-2: #2b241f;
+      --text: #f5eadc;
+      --muted: #bda995;
+      --line: #4b3c31;
+      --gold: #f2bd4b;
+      --red: #e56b6f;
+      --green: #79c77b;
+      --blue: #7aa7ff;
+      --purple: #c084fc;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(242, 189, 75, 0.16), transparent 34rem),
+        linear-gradient(135deg, #100d0b, var(--bg));
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button, select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 14px;
+      color: var(--text);
+      background: #342a23;
+      transition: transform 0.08s ease, border-color 0.12s ease, background 0.12s ease;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      border-color: var(--gold);
+      background: #43362c;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+    }
+
+    .app {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      padding: 22px;
+    }
+
+    .topbar {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      letter-spacing: 0.04em;
+      font-size: clamp(28px, 6vw, 56px);
+      line-height: 0.95;
+    }
+
+    .brand p {
+      margin: 8px 0 0;
+      color: var(--muted);
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .pill {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 12px;
+      background: rgba(33, 27, 24, 0.82);
+      color: var(--muted);
+    }
+
+    .gold { color: var(--gold); font-weight: 800; }
+    .danger { color: var(--red); }
+    .success { color: var(--green); }
+    .muted { color: var(--muted); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
+    }
+
+    .panel {
+      grid-column: span 12;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      background: rgba(33, 27, 24, 0.9);
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.24);
+    }
+
+    .panel h2, .panel h3 {
+      margin: 0 0 12px;
+    }
+
+    .section-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 0 0 12px;
+    }
+
+    .section-title-row h3 { margin: 0; }
+    .section-title-row h2 { margin: 0; }
+
+    .half { grid-column: span 6; }
+    .third { grid-column: span 4; }
+    .two-third { grid-column: span 8; }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .primary {
+      border-color: #775923;
+      background: linear-gradient(180deg, #876324, #634719);
+      font-weight: 800;
+    }
+
+    .card-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 10px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      background: var(--panel-2);
+      min-height: 132px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .card header {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: start;
+    }
+
+    .card strong { font-size: 17px; }
+    .card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.35; }
+
+    .collection-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      background: var(--panel-2);
+      min-height: 112px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .collection-card header {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: start;
+    }
+
+    .collection-card strong { font-size: 17px; }
+    .collection-card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.35; }
+
+    .rarity {
+      font-size: 12px;
+      border-radius: 999px;
+      padding: 3px 8px;
+      border: 1px solid currentColor;
+      white-space: nowrap;
+    }
+
+    .Common { color: #d7c4ae; }
+    .Rare { color: var(--blue); }
+    .Epic { color: var(--purple); }
+    .Legendary { color: var(--gold); }
+
+    .battle-cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin: 14px 0;
+    }
+
+    .number-card {
+      min-height: 150px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      background: linear-gradient(160deg, #30241f, #191310);
+      transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .number-card > div {
+      width: 100%;
+      display: grid;
+      place-items: center;
+    }
+
+    .number-card.targetable {
+      cursor: pointer;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(242, 189, 75, 0.18), 0 0 28px rgba(242, 189, 75, 0.18);
+    }
+
+    .number-card.targetable:hover {
+      transform: translateY(-4px) scale(1.02);
+    }
+
+    .number-card.player-success {
+      animation: successPulse 0.9s ease both;
+    }
+
+    .number-card.player-fail {
+      animation: failShake 0.8s ease both;
+    }
+
+    .battle-panel.entering {
+      animation: floorEnter 0.65s ease both;
+    }
+
+    .number-card .num {
+      font-size: clamp(44px, 10vw, 78px);
+      font-weight: 900;
+      width: 100%;
+      text-align: center;
+      line-height: 1;
+    }
+
+    .number-card small {
+      display: block;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .log {
+      max-height: 220px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.16);
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .deck-summary-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .deck-summary-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px 10px;
+      background: rgba(0, 0, 0, 0.14);
+    }
+
+    .deck-summary-item strong {
+      color: currentColor;
+    }
+
+    .deck-summary-count {
+      color: var(--text);
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .result-box {
+      font-size: 18px;
+      line-height: 1.7;
+    }
+
+    .target-banner {
+      margin-top: 12px;
+      border: 1px solid var(--gold);
+      border-radius: 14px;
+      padding: 10px 12px;
+      background: rgba(242, 189, 75, 0.11);
+      color: var(--gold);
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      background: rgba(0, 0, 0, 0.68);
+    }
+
+    .modal {
+      width: min(680px, 100%);
+      max-height: calc(100vh - 36px);
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 18px;
+      background: linear-gradient(160deg, #2a211c, #15100e);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.52);
+    }
+
+    .chests {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .chest {
+      min-height: 120px;
+      font-size: 44px;
+      border-color: #806229;
+      background: linear-gradient(180deg, #74551f, #382715);
+    }
+
+    .shop-items {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 10px;
+      margin: 14px 0;
+    }
+
+    .shop-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      background: var(--panel-2);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 160px;
+    }
+
+    .shop-card header {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: start;
+    }
+
+    .shop-card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.35; }
+
+    .gacha-results {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 10px;
+      margin: 14px 0;
+    }
+
+    .gacha-results.single {
+      grid-template-columns: minmax(220px, 320px);
+      justify-content: center;
+    }
+
+    .gacha-results.ten {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .gacha-results .card {
+      animation: cardRevealUp 0.42s ease both;
+    }
+
+    .mobile-hand-preview { display: none; }
+
+    @keyframes successPulse {
+      0% { transform: scale(1); box-shadow: none; border-color: var(--line); }
+      45% { transform: scale(1.08); box-shadow: 0 0 40px rgba(121, 199, 123, 0.48); border-color: var(--green); }
+      100% { transform: scale(1); box-shadow: 0 0 20px rgba(121, 199, 123, 0.28); border-color: var(--green); }
+    }
+
+    @keyframes failShake {
+      0%, 100% { transform: translateX(0); border-color: var(--red); box-shadow: 0 0 18px rgba(229, 107, 111, 0.25); }
+      18%, 54% { transform: translateX(-10px); }
+      36%, 72% { transform: translateX(10px); }
+    }
+
+    @keyframes floorEnter {
+      0% { opacity: 0; transform: translateY(-46px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes cardRevealUp {
+      0% { opacity: 0; transform: translateY(28px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .hidden { display: none !important; }
+
+    body:not(.home-active) .topbar > .pill-row { display: none; }
+
+    @media (max-width: 760px) {
+      .app { padding: 14px 14px 260px; }
+      .topbar { align-items: flex-start; flex-direction: column; }
+      .half, .third, .two-third { grid-column: span 12; }
+      #battleView .panel:nth-child(1) { order: 1; }
+      #battleView .panel:nth-child(2) { order: 3; }
+      #battleView .panel:nth-child(3) { order: 2; }
+      .battle-cards { grid-template-columns: 1fr 1fr; }
+      .battle-cards .number-card:nth-child(2) { grid-column: span 2; order: 3; }
+      .number-card { min-height: 116px; }
+      .card-list { grid-template-columns: 1fr; }
+      #deckView .panel:nth-child(2) { order: 3; }
+      #deckView .panel:nth-child(3) { order: 2; }
+      #deckView .card-list {
+        display: flex;
+        grid-template-columns: none;
+        gap: 10px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 10px;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+      }
+      #deckView .card-list .card {
+        flex: 0 0 180px;
+        height: 212px;
+        min-height: 0;
+        overflow: auto;
+        scroll-snap-align: start;
+      }
+      #deckView .card-list .card p {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      #collectionList.card-list { gap: 8px; }
+      .collection-card {
+        cursor: pointer;
+        min-height: 0;
+        padding: 10px 12px;
+      }
+      .collection-card-detail { display: none; }
+      .collection-card.expanded .collection-card-detail { display: block; }
+      .card button, .actions button { min-height: 46px; }
+      .chests { grid-template-columns: 1fr; }
+      .chest { min-height: 84px; }
+      .modal-backdrop { align-items: start; overflow: auto; }
+      #gachaResultModal.modal-backdrop { align-items: center; }
+      .modal { max-height: none; }
+      .shop-items { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .gacha-results { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .gacha-results.single { grid-template-columns: minmax(0, 260px); }
+      .shop-card {
+        min-height: 120px;
+        padding: 10px;
+      }
+      .shop-card p {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      body.battle-view-active #handPanel {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 15;
+        border-radius: 18px 18px 0 0;
+        max-height: 255px;
+        overflow: hidden;
+        padding: 12px 12px 10px;
+        background: rgba(33, 27, 24, 0.98);
+        box-shadow: 0 -18px 44px rgba(0, 0, 0, 0.42);
+      }
+      body.battle-view-active #handPanel h2 {
+        margin-bottom: 8px;
+        font-size: 16px;
+      }
+      body.battle-view-active #handList.card-list {
+        display: flex;
+        grid-template-columns: none;
+        gap: 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 6px 14px 10px 2px;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x proximity;
+      }
+      body.battle-view-active #handList .card {
+        flex: 0 0 86px;
+        width: 86px;
+        min-height: 112px;
+        height: 112px;
+        margin-right: -18px;
+        padding: 9px;
+        overflow: hidden;
+        scroll-snap-align: center;
+        box-shadow: -8px 0 18px rgba(0, 0, 0, 0.18);
+      }
+      body.battle-view-active #handList .card.selected {
+        transform: scale(1.04);
+        border-color: var(--gold);
+        box-shadow: 0 0 0 2px rgba(242, 189, 75, 0.22), -8px 0 18px rgba(0, 0, 0, 0.22);
+      }
+      body.battle-view-active #handList .card header {
+        display: block;
+      }
+      body.battle-view-active #handList .card strong {
+        display: block;
+        font-size: 14px;
+        line-height: 1.2;
+      }
+      body.battle-view-active #handList .card .rarity,
+      body.battle-view-active #handList .card p,
+      body.battle-view-active #handList .card button {
+        display: none;
+      }
+      body.battle-view-active .mobile-hand-preview {
+        display: block;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 10px;
+        background: rgba(0, 0, 0, 0.18);
+      }
+      body.battle-view-active .mobile-hand-preview strong {
+        font-size: 16px;
+      }
+      body.battle-view-active .mobile-hand-preview p {
+        margin: 6px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.35;
+      }
+      body.battle-view-active .mobile-hand-preview .actions {
+        margin-top: 8px;
+      }
+      body.battle-view-active .mobile-hand-preview button {
+        min-height: 42px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="topbar">
+      <div class="brand">
+        <h1>In-Between Hero</h1>
+        <p>單人 Roguelike 卡牌 MVP</p>
+      </div>
+      <div class="pill-row">
+        <span class="pill">Gold <span id="gold" class="gold">0</span></span>
+        <span class="pill">Deck Cost <span id="deckCost">0 / 30</span></span>
+        <button id="resetBtn">重置存檔</button>
+      </div>
+    </div>
+
+    <section id="homeView" class="grid">
+      <div class="panel two-third">
+        <h2>首頁</h2>
+        <p class="muted">編組 Cost 不超過 30 的討伐牌組，進入 30 層旅程。使用過的卡會永久消失；失敗會失去本次討伐帶入與獲得的所有卡牌和金幣。</p>
+        <div class="actions">
+          <button id="startRunBtn" class="primary">開始討伐</button>
+          <button id="showDeckBtn">編組牌庫</button>
+          <button id="openShopBtn">商店</button>
+        </div>
+        <p id="homeMessage" class="muted"></p>
+      </div>
+      <div class="panel third">
+        <h3>目前編組</h3>
+        <div id="deckSummary" class="log"></div>
+      </div>
+      <div class="panel">
+        <h2>收藏卡牌</h2>
+        <div id="collectionList" class="card-list"></div>
+      </div>
+    </section>
+
+    <section id="deckView" class="grid hidden">
+      <div class="panel">
+        <h2>編組牌庫</h2>
+        <p class="muted">點擊收藏中的卡牌加入編組；點擊編組中的卡牌移回收藏。總 Cost 必須 <= 30。</p>
+        <div class="actions">
+          <button id="backHomeFromDeck">返回首頁</button>
+          <button id="startRunFromDeck" class="primary">用目前編組開始討伐</button>
+        </div>
+      </div>
+      <div class="panel half">
+        <h3>可用收藏</h3>
+        <div id="deckCollectionList" class="card-list"></div>
+      </div>
+      <div class="panel half">
+        <div class="section-title-row">
+          <h3>本次討伐牌組</h3>
+          <span class="pill">Deck Cost <span id="deckBuildCost">0 / 30</span></span>
+        </div>
+        <div id="deckList" class="card-list"></div>
+      </div>
+    </section>
+
+    <section id="battleView" class="grid hidden">
+      <div id="battlePanel" class="panel two-third battle-panel">
+        <div class="pill-row">
+          <span class="pill">Floor <strong id="floorText">1</strong> / 30</span>
+          <span class="pill">Enemy <strong id="enemyName">Slime</strong></span>
+          <span class="pill">Run Gold <strong id="runGold" class="gold">0</strong></span>
+          <span class="pill">Win Rule <strong id="winRule">Inside</strong></span>
+        </div>
+        <div class="battle-cards">
+          <div id="enemyLeftCard" class="number-card"><div><small>Enemy Left</small><div id="enemyLeft" class="num">0</div></div></div>
+          <div id="playerNumberCard" class="number-card"><div><small>Your Card</small><div id="playerCard" class="num">?</div></div></div>
+          <div id="enemyRightCard" class="number-card"><div><small>Enemy Right</small><div id="enemyRight" class="num">0</div></div></div>
+        </div>
+        <div class="actions">
+          <button id="revealBtn" class="primary">Reveal</button>
+          <button id="cancelTargetBtn" class="hidden">取消選擇</button>
+          <button id="settleDefeatBtn" class="hidden primary">前往結算</button>
+          <button id="retreatAfterWinBtn" class="hidden">撤退保留 40%</button>
+          <button id="continueAfterWinBtn" class="hidden primary">繼續下一層</button>
+          <button id="scoutRetreatBtn" class="hidden">撤退保留 20%</button>
+          <button id="scoutContinueBtn" class="hidden primary">繼續戰鬥</button>
+        </div>
+        <div id="targetBanner" class="target-banner hidden"></div>
+        <p id="battleMessage" class="muted"></p>
+      </div>
+      <div class="panel third">
+        <h3>已發動紀錄</h3>
+        <div id="usedLog" class="log"></div>
+      </div>
+      <div id="handPanel" class="panel">
+        <div class="section-title-row">
+          <h2>目前手牌</h2>
+          <div class="pill-row">
+            <span class="pill">牌庫剩餘 <span id="runDeckCount">0</span></span>
+            <span class="pill">棄牌區 <span id="discardCount">0</span></span>
+          </div>
+        </div>
+        <div id="mobileHandPreview" class="mobile-hand-preview"></div>
+        <div id="handList" class="card-list"></div>
+      </div>
+    </section>
+
+    <section id="resultView" class="grid hidden">
+      <div class="panel">
+        <h2>結算畫面</h2>
+        <div id="resultBox" class="result-box"></div>
+        <div class="actions">
+          <button id="returnHomeBtn" class="primary">Return Home</button>
+        </div>
+      </div>
+    </section>
+    <div id="supplyModal" class="modal-backdrop hidden">
+      <div class="modal">
+        <h2>緊急補給</h2>
+        <p class="muted">你已經沒有 Gold，也沒有可編組卡牌。選擇一個寶箱，補給內容將依機率決定。</p>
+        <div class="chests">
+          <button class="chest" data-chest="1">寶箱 I</button>
+          <button class="chest" data-chest="2">寶箱 II</button>
+          <button class="chest" data-chest="3">寶箱 III</button>
+        </div>
+        <p id="supplyMessage" class="muted"></p>
+        <div class="actions">
+          <button id="confirmSupplyBtn" class="primary hidden">確認</button>
+        </div>
+      </div>
+    </div>
+    <div id="shopModal" class="modal-backdrop hidden">
+      <div class="modal">
+        <div class="section-title-row">
+          <h2>商店</h2>
+          <button id="closeShopBtn">關閉</button>
+        </div>
+        <p class="muted">購買目前陳列的卡牌，或花 20 Gold 抽一張隨機卡。</p>
+        <div id="shopItems" class="shop-items"></div>
+        <div class="actions">
+          <button id="shopGachaBtn" class="primary">抽卡 20 Gold</button>
+          <button id="shopTenGachaBtn" class="primary">十連抽 200 Gold</button>
+        </div>
+        <p id="shopMessage" class="muted"></p>
+      </div>
+    </div>
+    <div id="gachaResultModal" class="modal-backdrop hidden">
+      <div class="modal">
+        <h2>獲得卡牌</h2>
+        <div id="gachaResultList" class="gacha-results"></div>
+        <div class="actions">
+          <button id="confirmGachaResultBtn" class="primary">確認</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const MAX_COST = 30;
+    const GACHA_COST = 20;
+    const SAVE_KEY = "in-between-hero-mvp-save";
+    const RUN_SAVE_KEY = "in-between-hero-mvp-run";
+
+    const cards = [
+      { id: "escape", name: "回家卷軸", rarity: "Common", cost: 1, desc: "立即結束本次討伐，保留未使用卡牌與本次獎勵", source: "初始、掉落、抽卡" },
+      { id: "fireball", name: "火球術", rarity: "Common", cost: 1, desc: "指定一張敵方數字牌 +10", source: "初始、掉落、抽卡" },
+      { id: "ice", name: "冰錐術", rarity: "Common", cost: 1, desc: "指定一張敵方數字牌 -10", source: "初始、掉落、抽卡" },
+      { id: "blast", name: "爆炎術", rarity: "Common", cost: 1, desc: "指定一張敵方數字牌 +20", source: "掉落、抽卡" },
+      { id: "frost", name: "極寒術", rarity: "Common", cost: 1, desc: "指定一張敵方數字牌 -20", source: "掉落、抽卡" },
+      { id: "shuffle", name: "命運洗牌", rarity: "Common", cost: 1, desc: "重抽指定一張敵方數字牌", source: "掉落、抽卡" },
+      { id: "mirrorSwap", name: "鏡像置換", rarity: "Common", cost: 1, desc: "指定一張敵方牌與自己的牌交換，自己的牌仍不可見", source: "掉落、抽卡" },
+      { id: "giant", name: "巨人化", rarity: "Rare", cost: 2, desc: "指定一張敵方數字牌 x2，最高 100", source: "抽卡、Boss" },
+      { id: "shrink", name: "縮小術", rarity: "Rare", cost: 2, desc: "指定一張敵方數字牌 /2，無條件捨去", source: "抽卡、Boss" },
+      { id: "void", name: "虛無", rarity: "Rare", cost: 2, desc: "指定一張敵方數字牌變成 0", source: "抽卡" },
+      { id: "oracle", name: "神諭", rarity: "Rare", cost: 2, desc: "指定一張敵方數字牌變成 100", source: "抽卡" },
+      { id: "trueSight", name: "真視之眼", rarity: "Rare", cost: 3, desc: "查看自己的數字牌", source: "Boss、抽卡" },
+      { id: "twinMirror", name: "雙生魔鏡", rarity: "Rare", cost: 2, desc: "指定一張敵方數字牌，將自己的數字牌改成與指定的數字相同", source: "抽卡" },
+      { id: "reverse", name: "境界反轉", rarity: "Epic", cost: 2, desc: "本場勝利條件改為數字位於區間之外", source: "Boss、抽卡" },
+      { id: "resonance", name: "魔力共鳴", rarity: "Epic", cost: 1, desc: "下一張魔法卡效果加倍", source: "抽卡" },
+      { id: "echo", name: "魔法迴響", rarity: "Epic", cost: 1, desc: "再次發動上一張使用過的魔法卡", source: "抽卡" },
+      { id: "omniscience", name: "貪婪之眼", rarity: "Epic", cost: 2, desc: "立即抽三張牌", source: "Boss" },
+      { id: "stasis", name: "命運凝滯", rarity: "Legendary", cost: 2, desc: "Reveal 後若失敗，可重新使用魔法卡並再次判定一次", source: "Boss" },
+      { id: "balance", name: "命運天秤", rarity: "Legendary", cost: 2, desc: "將自己的棄牌區與牌庫中的卡牌交換", source: "Boss" },
+      { id: "chaos", name: "混沌風暴", rarity: "Legendary", cost: 2, desc: "敵方兩張數字牌全部重新生成", source: "Boss" },
+      { id: "world", name: "世界重構", rarity: "Legendary", cost: 2, desc: "將敵方兩張數字牌變成 0 與 100", source: "Boss" }
+    ];
+
+    const enemyNames = ["哥布林", "骷髏兵", "黑羽盜賊", "石像鬼", "深林魔女", "熔岩獸", "夢魘騎士", "魔王親衛", "魔王"];
+    const cardById = Object.fromEntries(cards.map(card => [card.id, card]));
+    const rarityOrder = { Common: 0, Rare: 1, Epic: 2, Legendary: 3 };
+    const commonPool = cards.filter(card => card.rarity === "Common").map(card => card.id);
+    const gachaPool = cards.filter(card => card.rarity !== "Legendary" && card.id !== "omniscience").map(card => card.id);
+    const bossPool = cards.filter(card => ["Rare", "Epic", "Legendary"].includes(card.rarity)).map(card => card.id);
+    const GAP_RANGES_BY_STAGE = [
+      [
+        { range: [90, 100], weight: 50 },
+        { range: [80, 90], weight: 20 },
+        { range: [60, 80], weight: 15 },
+        { range: [40, 60], weight: 5 },
+        { range: [20, 40], weight: 0 }
+      ],
+      [
+        { range: [90, 100], weight: 45 },
+        { range: [80, 90], weight: 25 },
+        { range: [60, 80], weight: 25 },
+        { range: [40, 60], weight: 3 },
+        { range: [20, 40], weight: 2 }
+      ],
+      [
+        { range: [90, 100], weight: 40 },
+        { range: [80, 90], weight: 30 },
+        { range: [60, 80], weight: 20 },
+        { range: [40, 60], weight: 3 },
+        { range: [20, 40], weight: 2 }
+      ],
+      [
+        { range: [90, 100], weight: 35 },
+        { range: [80, 90], weight: 25 },
+        { range: [60, 80], weight: 25 },
+        { range: [40, 60], weight: 8 },
+        { range: [20, 40], weight: 2 }
+      ],
+      [
+        { range: [90, 100], weight: 35 },
+        { range: [80, 90], weight: 10 },
+        { range: [60, 80], weight: 35 },
+        { range: [40, 60], weight: 10 },
+        { range: [20, 40], weight: 10 }
+      ],
+      [
+        { range: [90, 100], weight: 30 },
+        { range: [80, 90], weight: 10 },
+        { range: [60, 80], weight: 30 },
+        { range: [40, 60], weight: 15 },
+        { range: [20, 40], weight: 10 }
+      ]
+    ];
+
+    let state = loadState();
+    let run = loadRun();
+    let currentView = "home";
+    let supplyClaimed = false;
+    let selectedHandIndex = 0;
+
+    const els = {
+      gold: document.getElementById("gold"), deckCost: document.getElementById("deckCost"), deckBuildCost: document.getElementById("deckBuildCost"), resetBtn: document.getElementById("resetBtn"),
+      homeView: document.getElementById("homeView"), deckView: document.getElementById("deckView"), battleView: document.getElementById("battleView"), resultView: document.getElementById("resultView"),
+      startRunBtn: document.getElementById("startRunBtn"), showDeckBtn: document.getElementById("showDeckBtn"), openShopBtn: document.getElementById("openShopBtn"), homeMessage: document.getElementById("homeMessage"),
+      collectionList: document.getElementById("collectionList"), deckSummary: document.getElementById("deckSummary"), deckCollectionList: document.getElementById("deckCollectionList"), deckList: document.getElementById("deckList"),
+      backHomeFromDeck: document.getElementById("backHomeFromDeck"), startRunFromDeck: document.getElementById("startRunFromDeck"),
+      floorText: document.getElementById("floorText"), enemyName: document.getElementById("enemyName"), runGold: document.getElementById("runGold"), winRule: document.getElementById("winRule"),
+      enemyLeft: document.getElementById("enemyLeft"), enemyRight: document.getElementById("enemyRight"), playerCard: document.getElementById("playerCard"), revealBtn: document.getElementById("revealBtn"), battleMessage: document.getElementById("battleMessage"),
+      enemyLeftCard: document.getElementById("enemyLeftCard"), enemyRightCard: document.getElementById("enemyRightCard"), playerNumberCard: document.getElementById("playerNumberCard"), battlePanel: document.getElementById("battlePanel"),
+      cancelTargetBtn: document.getElementById("cancelTargetBtn"), settleDefeatBtn: document.getElementById("settleDefeatBtn"), retreatAfterWinBtn: document.getElementById("retreatAfterWinBtn"), continueAfterWinBtn: document.getElementById("continueAfterWinBtn"), scoutRetreatBtn: document.getElementById("scoutRetreatBtn"), scoutContinueBtn: document.getElementById("scoutContinueBtn"), targetBanner: document.getElementById("targetBanner"),
+      handList: document.getElementById("handList"), mobileHandPreview: document.getElementById("mobileHandPreview"), runDeckCount: document.getElementById("runDeckCount"), discardCount: document.getElementById("discardCount"), usedLog: document.getElementById("usedLog"), resultBox: document.getElementById("resultBox"), returnHomeBtn: document.getElementById("returnHomeBtn"),
+      supplyModal: document.getElementById("supplyModal"), supplyMessage: document.getElementById("supplyMessage"), confirmSupplyBtn: document.getElementById("confirmSupplyBtn"),
+      shopModal: document.getElementById("shopModal"), shopItems: document.getElementById("shopItems"), shopGachaBtn: document.getElementById("shopGachaBtn"), shopTenGachaBtn: document.getElementById("shopTenGachaBtn"), closeShopBtn: document.getElementById("closeShopBtn"), shopMessage: document.getElementById("shopMessage"),
+      gachaResultModal: document.getElementById("gachaResultModal"), gachaResultList: document.getElementById("gachaResultList"), confirmGachaResultBtn: document.getElementById("confirmGachaResultBtn")
+    };
+
+    function defaultState() {
+      return {
+        gold: 50,
+        collection: ["escape", "escape", "fireball", "fireball", "fireball", "fireball", "ice", "ice", "ice", "ice"],
+        deck: ["escape", "fireball", "fireball", "ice", "ice"],
+        shop: null
+      };
+    }
+
+    function loadState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
+        if (saved && Array.isArray(saved.collection) && Array.isArray(saved.deck)) return saved;
+      } catch (error) {}
+      return defaultState();
+    }
+
+    function saveState() {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+    }
+
+    function loadRun() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(RUN_SAVE_KEY));
+        if (!saved || !Array.isArray(saved.deck) || !Array.isArray(saved.hand)) return null;
+        return normalizeRun(saved);
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function normalizeRun(savedRun) {
+      savedRun.used ||= [];
+      savedRun.lostCards ||= [];
+      savedRun.newCards ||= [];
+      savedRun.log ||= [];
+      savedRun.pendingTarget = null;
+      savedRun.entering = false;
+      if (savedRun.revealResult && !savedRun.awaitingDefeatSettlement && !savedRun.awaitingPostWinChoice) {
+        savedRun.revealResult = null;
+        savedRun.playerRevealed = false;
+        savedRun.locked = false;
+      }
+      return savedRun;
+    }
+
+    function saveRun() {
+      if (run) localStorage.setItem(RUN_SAVE_KEY, JSON.stringify(run));
+    }
+
+    function clearRun() {
+      localStorage.removeItem(RUN_SAVE_KEY);
+    }
+
+    function setBattleMessage(message) {
+      if (run) run.message = message;
+      els.battleMessage.textContent = message;
+    }
+
+    function countCards(ids) {
+      return ids.reduce((map, id) => {
+        map[id] = (map[id] || 0) + 1;
+        return map;
+      }, {});
+    }
+
+    function deckCost(ids = state.deck) {
+      return ids.reduce((sum, id) => sum + cardById[id].cost, 0);
+    }
+
+    function clamp(value) {
+      return Math.max(0, Math.min(100, value));
+    }
+
+    function randInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function pick(list) {
+      return list[Math.floor(Math.random() * list.length)];
+    }
+
+    function compareCardIds(a, b) {
+      const rarityDiff = rarityOrder[cardById[a].rarity] - rarityOrder[cardById[b].rarity];
+      return rarityDiff || a.localeCompare(b);
+    }
+
+    function sortedCardIds(ids) {
+      return [...ids].sort(compareCardIds);
+    }
+
+    function sortedCountKeys(counts) {
+      return Object.keys(counts).sort(compareCardIds);
+    }
+
+    function removeOne(list, id) {
+      const index = list.indexOf(id);
+      if (index >= 0) list.splice(index, 1);
+    }
+
+    function reconcileDeckWithCollection() {
+      const remaining = [...state.collection];
+      state.deck = state.deck.filter(id => {
+        const index = remaining.indexOf(id);
+        if (index < 0) return false;
+        remaining.splice(index, 1);
+        return true;
+      });
+    }
+
+    function availableCollection() {
+      const available = [...state.collection];
+      state.deck.forEach(id => removeOne(available, id));
+      return available;
+    }
+
+    function weightedGacha() {
+      const roll = Math.random();
+      const rarity = roll < 0.72 ? "Common" : roll < 0.94 ? "Rare" : "Epic";
+      return pick(gachaPool.filter(id => cardById[id].rarity === rarity));
+    }
+
+    function generateShop() {
+      return [
+        ...randomShopCards("Common", 5, 40),
+        ...randomShopCards("Rare", 2, 80),
+        ...randomShopCards("Epic", 1, 200)
+      ];
+    }
+
+    function randomShopCards(rarity, amount, price) {
+      const pool = cards.filter(card => card.rarity === rarity).map(card => card.id);
+      return Array.from({ length: amount }, () => ({ id: pick(pool), price, sold: false }));
+    }
+
+    function ensureShop() {
+      const slot = currentShopSlot();
+      if (!state.shop || state.shop.slot !== slot || !Array.isArray(state.shop.items)) {
+        state.shop = { slot, items: generateShop() };
+        saveState();
+      }
+    }
+
+    function currentShopSlot() {
+      return Math.floor(Date.now() / (10 * 60 * 1000));
+    }
+
+    function weightedDrop(isBoss) {
+      if (isBoss) return pick(bossPool);
+      const roll = Math.random();
+      if (roll < 0.7) return pick(commonPool);
+      if (roll < 0.95) return pick(cards.filter(card => card.rarity === "Rare").map(card => card.id));
+      return pick(cards.filter(card => card.rarity === "Epic").map(card => card.id));
+    }
+
+    function pickTargetSuccessRange(floor) {
+      if (Math.random() < 0.05) return Math.random() < 0.8 ? [95, 100] : [0, 10];
+
+      const stageIndex = Math.min(GAP_RANGES_BY_STAGE.length - 1, Math.floor((floor - 1) / 5));
+      const ranges = GAP_RANGES_BY_STAGE[stageIndex];
+      const totalWeight = ranges.reduce((sum, item) => sum + item.weight, 0);
+      let roll = Math.random() * totalWeight;
+      for (const item of ranges) {
+        roll -= item.weight;
+        if (roll <= 0) return item.range;
+      }
+      return ranges[ranges.length - 1].range;
+    }
+
+    function generateEnemyCardsByFloor(floor) {
+      const [min, max] = pickTargetSuccessRange(floor);
+      const gap = randInt(min, max);
+      const low = randInt(0, 100 - gap);
+      const pair = [low, low + gap];
+      return Math.random() < 0.5 ? pair : [pair[1], pair[0]];
+    }
+
+    function needsTarget(id) {
+      return ["fireball", "ice", "blast", "frost", "shuffle", "mirrorSwap", "giant", "shrink", "void", "oracle", "twinMirror"].includes(id);
+    }
+
+    function needsEmergencySupply() {
+      return state.gold < GACHA_COST && state.collection.length === 0;
+    }
+
+    function baseSupplyCards() {
+      return ["escape", "escape", "fireball", "fireball", "fireball", "fireball", "ice", "ice", "ice", "ice"];
+    }
+
+    function renderCard(id, options = {}) {
+      const card = cardById[id];
+      const button = options.buttonLabel ? `<button ${options.disabled ? "disabled" : ""}>${options.buttonLabel}</button>` : "";
+      return `
+        <div class="card ${card.rarity}">
+          <header><strong>${card.name}</strong><span class="rarity ${card.rarity}">${card.rarity}</span></header>
+          <p>Cost ${card.cost}｜${card.desc}</p>
+          ${options.count ? `<p>持有：${options.count}</p>` : ""}
+          ${button}
+        </div>
+      `;
+    }
+
+    function renderCollectionCard(id, count) {
+      const card = cardById[id];
+      return `
+        <div class="collection-card ${card.rarity}" data-card-id="${id}">
+          <header><strong>${card.name}</strong><span class="rarity ${card.rarity}">${card.rarity}</span></header>
+          <p>持有：${count}</p>
+          <p class="collection-card-detail">Cost ${card.cost}｜${card.desc}</p>
+        </div>
+      `;
+    }
+
+    function renderShopCard(item, index) {
+      const card = cardById[item.id];
+      return `
+        <div class="shop-card ${card.rarity}">
+          <header><strong>${card.name}</strong><span class="rarity ${card.rarity}">${card.rarity}</span></header>
+          <p>Cost ${card.cost}｜${card.desc}</p>
+          <button data-shop-index="${index}" ${item.sold ? "disabled" : ""}>${item.sold ? "已售出" : `購買 ${item.price} Gold`}</button>
+        </div>
+      `;
+    }
+
+    function setView(view) {
+      currentView = view;
+      document.body.classList.toggle("home-active", view === "home");
+      document.body.classList.toggle("battle-view-active", view === "battle");
+      [els.homeView, els.deckView, els.battleView, els.resultView].forEach(el => el.classList.add("hidden"));
+      els[`${view}View`].classList.remove("hidden");
+      render();
+      if (view === "home" && needsEmergencySupply()) showEmergencySupplyModal();
+    }
+
+    function render() {
+      els.gold.textContent = state.gold;
+      const cost = deckCost();
+      els.deckCost.textContent = `${cost} / ${MAX_COST}`;
+      els.deckCost.className = cost > MAX_COST ? "danger" : "";
+      els.deckBuildCost.textContent = `${cost} / ${MAX_COST}`;
+      els.deckBuildCost.className = cost > MAX_COST ? "danger" : "";
+      renderHome();
+      renderDeckBuilder();
+      if (run) renderBattle();
+      saveRun();
+    }
+
+    function renderHome() {
+      const collectionCounts = countCards(state.collection);
+      els.collectionList.innerHTML = sortedCountKeys(collectionCounts).map(id => renderCollectionCard(id, collectionCounts[id])).join("");
+      [...els.collectionList.querySelectorAll(".collection-card")].forEach(card => {
+        card.addEventListener("click", () => card.classList.toggle("expanded"));
+      });
+      const deckCounts = countCards(state.deck);
+      els.deckSummary.innerHTML = Object.keys(deckCounts).length
+        ? `<div class="deck-summary-list">${sortedCountKeys(deckCounts).map(id => `
+          <div class="deck-summary-item ${cardById[id].rarity}">
+            <strong>${cardById[id].name}</strong>
+            <span class="deck-summary-count">x${deckCounts[id]}</span>
+          </div>
+        `).join("")}</div>`
+        : "尚未編組。";
+      const valid = state.deck.length > 0 && deckCost() <= MAX_COST;
+      els.startRunBtn.disabled = !valid;
+      els.startRunFromDeck.disabled = !valid;
+    }
+
+    function renderDeckBuilder() {
+      const available = availableCollection();
+      const availableCounts = countCards(available);
+      const availableIds = sortedCountKeys(availableCounts);
+      els.deckCollectionList.innerHTML = availableIds.map(id => renderCard(id, { count: availableCounts[id], buttonLabel: "加入編組" })).join("") || "<p class='muted'>沒有可加入的卡牌。</p>";
+      [...els.deckCollectionList.querySelectorAll(".card")].forEach((el, index) => {
+        const id = availableIds[index];
+        el.querySelector("button").addEventListener("click", () => addToDeck(id));
+      });
+
+      const deckCounts = countCards(state.deck);
+      const deckIds = sortedCountKeys(deckCounts);
+      els.deckList.innerHTML = deckIds.map(id => renderCard(id, { count: deckCounts[id], buttonLabel: "移出編組" })).join("") || "<p class='muted'>尚未選卡。</p>";
+      [...els.deckList.querySelectorAll(".card")].forEach((el, index) => {
+        const id = deckIds[index];
+        el.querySelector("button").addEventListener("click", () => removeFromDeck(id));
+      });
+    }
+
+    function renderBattle() {
+      els.floorText.textContent = run.floor;
+      els.enemyName.textContent = run.enemyName;
+      els.runGold.textContent = run.goldEarned;
+      els.winRule.textContent = run.outsideWin ? "Outside" : "Inside";
+      els.enemyLeft.textContent = run.scouting && run.visibleEnemyIndex !== 0 ? "?" : run.enemy[0];
+      els.enemyRight.textContent = run.scouting && run.visibleEnemyIndex !== 1 ? "?" : run.enemy[1];
+      els.playerCard.textContent = run.playerRevealed || run.peekPlayer ? run.player : "?";
+      els.playerNumberCard.classList.toggle("player-success", run.revealResult === "success");
+      els.playerNumberCard.classList.toggle("player-fail", run.revealResult === "fail");
+      els.battlePanel.classList.toggle("entering", !!run.entering);
+      els.enemyLeftCard.classList.toggle("targetable", !!run.pendingTarget && !run.locked);
+      els.enemyRightCard.classList.toggle("targetable", !!run.pendingTarget && !run.locked);
+      els.cancelTargetBtn.classList.toggle("hidden", !run.pendingTarget || run.locked);
+      els.settleDefeatBtn.classList.toggle("hidden", !run.awaitingDefeatSettlement);
+      els.retreatAfterWinBtn.classList.toggle("hidden", !run.awaitingPostWinChoice);
+      els.continueAfterWinBtn.classList.toggle("hidden", !run.awaitingPostWinChoice);
+      els.scoutRetreatBtn.classList.toggle("hidden", !run.scouting);
+      els.scoutContinueBtn.classList.toggle("hidden", !run.scouting);
+      els.targetBanner.classList.toggle("hidden", !run.pendingTarget || run.locked);
+      els.targetBanner.textContent = run.pendingTarget ? `選擇 ${cardById[run.pendingTarget.id].name} 要影響的敵方數字` : "";
+      els.battleMessage.textContent = run.message || "";
+      els.runDeckCount.textContent = run.deck.length;
+      els.discardCount.textContent = run.lostCards.length;
+      els.usedLog.innerHTML = run.log.length ? run.log.map(item => `- ${item}`).join("<br>") : "尚未使用卡牌。";
+      const sortedHand = run.hand.map((id, index) => ({ id, index })).sort((a, b) => compareCardIds(a.id, b.id) || a.index - b.index);
+      selectedHandIndex = run.hand.length ? (run.hand[selectedHandIndex] ? selectedHandIndex : sortedHand[0].index) : 0;
+      renderMobileHandPreview();
+      els.handList.innerHTML = sortedHand.map(item => renderCard(item.id, { buttonLabel: "使用" })).join("") || "<p class='muted'>沒有手牌。</p>";
+      const handCardEls = [...els.handList.querySelectorAll(".card")];
+      handCardEls.forEach((el, index) => {
+        const handIndex = sortedHand[index].index;
+        el.classList.toggle("selected", handIndex === selectedHandIndex);
+        el.querySelector("button").disabled = run.locked || !!run.pendingTarget || run.scouting;
+        el.addEventListener("click", event => {
+          if (window.matchMedia("(max-width: 760px)").matches) {
+            event.preventDefault();
+            selectedHandIndex = handIndex;
+            renderMobileHandPreview();
+            handCardEls.forEach((cardEl, cardIndex) => {
+              cardEl.classList.toggle("selected", sortedHand[cardIndex].index === selectedHandIndex);
+            });
+            return;
+          }
+          if (event.target.tagName === "BUTTON") useCard(handIndex);
+        });
+      });
+      els.revealBtn.disabled = run.locked || !!run.pendingTarget || run.scouting;
+    }
+
+    function renderMobileHandPreview() {
+      if (!run.hand.length) {
+        els.mobileHandPreview.innerHTML = `<p class="muted">沒有手牌。</p>`;
+        return;
+      }
+      const id = run.hand[selectedHandIndex];
+      const card = cardById[id];
+      const disabled = run.locked || !!run.pendingTarget || run.scouting;
+      els.mobileHandPreview.innerHTML = `
+        <div class="section-title-row">
+          <strong>${card.name}</strong>
+          <span class="rarity ${card.rarity}">${card.rarity}</span>
+        </div>
+        <p>Cost ${card.cost}｜${card.desc}</p>
+        <div class="actions"><button id="mobileUseCardBtn" class="primary" ${disabled ? "disabled" : ""}>發動</button></div>
+      `;
+      const button = document.getElementById("mobileUseCardBtn");
+      if (button) button.addEventListener("click", () => useCard(selectedHandIndex));
+    }
+
+    function addToDeck(id) {
+      state.deck.push(id);
+      saveState();
+      render();
+    }
+
+    function removeFromDeck(id) {
+      removeOne(state.deck, id);
+      saveState();
+      render();
+    }
+
+    function startRun() {
+      if (!state.deck.length || deckCost() > MAX_COST) return;
+      const runDeck = [...state.deck];
+      shuffle(runDeck);
+      run = {
+        floor: 1,
+        deck: runDeck,
+        hand: [],
+        used: [],
+        lostCards: [],
+        newCards: [],
+        goldEarned: 0,
+        log: [],
+        lastCard: null,
+        resonance: false,
+        stasisReady: false,
+        stasisUsed: false,
+        playerRevealed: false,
+        peekPlayer: false,
+        outsideWin: false,
+        locked: false,
+        pendingTarget: null,
+        revealResult: null,
+        awaitingDefeatSettlement: false,
+        awaitingPostWinChoice: false,
+        scouting: false,
+        visibleEnemyIndex: null,
+        pendingWinGold: 0,
+        pendingWinDrop: null,
+        entering: true
+      };
+      drawFromRunDeck(5);
+      newBattle();
+      setBattleMessage("討伐開始。看清敵方兩張牌，再決定是否使用手牌。");
+      setView("battle");
+      setTimeout(() => {
+        if (!run) return;
+        run.entering = false;
+        render();
+      }, 700);
+    }
+
+    function shuffle(list) {
+      for (let i = list.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [list[i], list[j]] = [list[j], list[i]];
+      }
+    }
+
+    function drawFromRunDeck(amount) {
+      for (let i = 0; i < amount; i++) {
+        const next = run.deck.shift();
+        if (!next) return;
+        run.hand.push(next);
+      }
+    }
+
+    function newBattle() {
+      run.enemy = generateEnemyCardsByFloor(run.floor);
+      run.player = randInt(0, 100);
+      run.enemyName = run.floor === 30 ? "魔王" : enemyNames[Math.min(enemyNames.length - 2, Math.floor((run.floor - 1) / 4))];
+      run.playerRevealed = false;
+      run.peekPlayer = false;
+      run.outsideWin = false;
+      run.resonance = false;
+      run.stasisReady = false;
+      run.stasisUsed = false;
+      run.pendingTarget = null;
+      run.revealResult = null;
+      run.awaitingDefeatSettlement = false;
+      run.awaitingPostWinChoice = false;
+      run.scouting = false;
+      run.visibleEnemyIndex = null;
+      run.log = [];
+    }
+
+    function useCard(index, replayId = null, targetIndex = null) {
+      if (run.locked) return;
+      const id = replayId || run.hand[index];
+      if (!id) return;
+      if (needsTarget(id) && targetIndex === null) {
+        run.pendingTarget = { index, id, replayId };
+        setBattleMessage(`選擇 ${cardById[id].name} 要影響 Enemy Left 或 Enemy Right。`);
+        render();
+        return;
+      }
+      if (!replayId) {
+        run.hand.splice(index, 1);
+        run.used.push(id);
+        run.lostCards.push(id);
+      }
+      const card = cardById[id];
+      const multiplier = run.resonance && isNumericEffect(id) ? 2 : 1;
+      if (run.resonance && isNumericEffect(id)) run.resonance = false;
+
+      if (id === "escape") return retreat();
+      if (id === "echo") {
+        const previous = run.lastCard;
+        run.log.push(previous ? `${card.name}：再次發動 ${cardById[previous].name}` : `${card.name}：沒有上一張可發動的卡`);
+        if (previous) useCard(null, previous);
+        return render();
+      }
+
+      applyCard(id, multiplier, targetIndex);
+      if (id !== "resonance") run.lastCard = id;
+      run.log.push(`${card.name}${multiplier > 1 ? " x2" : ""}：${card.desc}`);
+      run.pendingTarget = null;
+      render();
+    }
+
+    function isNumericEffect(id) {
+      return ["fireball", "ice", "blast", "frost", "giant", "shrink"].includes(id);
+    }
+
+    function chooseEnemyTarget(targetIndex) {
+      if (!run || !run.pendingTarget || run.locked) return;
+      const pending = run.pendingTarget;
+      run.pendingTarget = null;
+      useCard(pending.index, pending.replayId, targetIndex);
+    }
+
+    function applyCard(id, multiplier, targetIndex = null) {
+      let i;
+      switch (id) {
+        case "fireball":
+          i = targetIndex; run.enemy[i] = clamp(run.enemy[i] + 10 * multiplier); break;
+        case "ice":
+          i = targetIndex; run.enemy[i] = clamp(run.enemy[i] - 10 * multiplier); break;
+        case "blast":
+          i = targetIndex; run.enemy[i] = clamp(run.enemy[i] + 20 * multiplier); break;
+        case "frost":
+          i = targetIndex; run.enemy[i] = clamp(run.enemy[i] - 20 * multiplier); break;
+        case "shuffle":
+          i = targetIndex; run.enemy[i] = randInt(0, 100); break;
+        case "mirrorSwap":
+          i = targetIndex; [run.enemy[i], run.player] = [run.player, run.enemy[i]]; break;
+        case "giant":
+          i = targetIndex; run.enemy[i] = clamp(run.enemy[i] * (2 * multiplier)); break;
+        case "shrink":
+          i = targetIndex; run.enemy[i] = Math.floor(run.enemy[i] / (2 * multiplier)); break;
+        case "void":
+          i = targetIndex; run.enemy[i] = 0; break;
+        case "oracle":
+          i = targetIndex; run.enemy[i] = 100; break;
+        case "trueSight":
+          run.peekPlayer = true; break;
+        case "twinMirror":
+          i = targetIndex; run.player = run.enemy[i]; break;
+        case "balance":
+          [run.deck, run.lostCards] = [run.lostCards, run.deck]; break;
+        case "reverse":
+          run.outsideWin = true; break;
+        case "resonance":
+          run.resonance = true; break;
+        case "omniscience":
+          drawFromRunDeck(3); break;
+        case "stasis":
+          run.stasisReady = true; break;
+        case "chaos":
+          run.enemy = [randInt(0, 100), randInt(0, 100)]; break;
+        case "world":
+          run.enemy = [0, 100]; break;
+      }
+    }
+
+    function checkWin() {
+      const low = Math.min(run.enemy[0], run.enemy[1]);
+      const high = Math.max(run.enemy[0], run.enemy[1]);
+      const inside = run.player > low && run.player < high;
+      return run.outsideWin ? !inside : inside;
+    }
+
+    function reveal() {
+      if (run.locked || run.pendingTarget) return;
+      run.playerRevealed = true;
+      run.locked = true;
+      const won = checkWin();
+      run.revealResult = won ? "success" : "fail";
+      const low = Math.min(run.enemy[0], run.enemy[1]);
+      const high = Math.max(run.enemy[0], run.enemy[1]);
+      setBattleMessage(won
+        ? `Success! 你的 ${run.player} 通過了 ${low} 與 ${high} 的判定。`
+        : `Failed! 你的 ${run.player} 沒有通過 ${low} 與 ${high} 的判定。`);
+      render();
+      setTimeout(() => resolveReveal(won), 1050);
+    }
+
+    function resolveReveal(won) {
+      if (!run) return;
+      if (won) return winBattle();
+      if (run.stasisReady && !run.stasisUsed) {
+        run.stasisUsed = true;
+        run.playerRevealed = false;
+        run.locked = false;
+        run.revealResult = null;
+        setBattleMessage("命運凝滯發動：本次 Reveal 失敗，但你可以繼續使用手牌後再次 Reveal。");
+        render();
+        return;
+      }
+      run.awaitingDefeatSettlement = true;
+      run.locked = true;
+      setBattleMessage("討伐失敗。確認結果後，點擊「前往結算」進入結算畫面。");
+      render();
+    }
+
+    function winBattle() {
+      const isBoss = run.floor % 10 === 0 || run.floor === 30;
+      let gold = randInt(7 + run.floor * 2, 15 + run.floor * 4);
+      if (isBoss) gold *= 3;
+      if (Math.random() < 0.05) gold *= 10;
+      run.goldEarned += gold;
+      const dropChance = isBoss ? 0.8 : 0.22;
+      let dropText = "";
+      if (Math.random() < dropChance) {
+        const newCard = weightedDrop(isBoss);
+        run.newCards.push(newCard);
+        dropText = `，獲得 ${cardById[newCard].name}`;
+      }
+      if (run.floor >= 30) return finishRun("Victory");
+      run.awaitingPostWinChoice = true;
+      run.locked = true;
+      setBattleMessage(`勝利！獲得 ${gold} Gold${dropText}。你可以現在撤退保留 40% 戰利品，或繼續下一層。`);
+      render();
+    }
+
+    function continueAfterWin() {
+      if (!run || !run.awaitingPostWinChoice) return;
+      run.awaitingPostWinChoice = false;
+      run.floor += 1;
+      drawFromRunDeck(1);
+      newBattle();
+      run.locked = true;
+      run.entering = true;
+      run.scouting = true;
+      run.visibleEnemyIndex = Math.random() < 0.5 ? 0 : 1;
+      setBattleMessage("你進入下一場戰鬥，先看見一張敵方數字。可選擇撤退保留 20% 戰利品，但有 50% 機率撤退失敗。");
+      render();
+      setTimeout(() => {
+        if (!run) return;
+        run.entering = false;
+        render();
+      }, 700);
+    }
+
+    function continueFromScout() {
+      if (!run || !run.scouting) return;
+      run.scouting = false;
+      run.visibleEnemyIndex = null;
+      run.locked = false;
+      setBattleMessage("戰鬥開始。看清敵方兩張牌，再決定是否使用手牌。");
+      render();
+    }
+
+    function scoutRetreat() {
+      if (!run || !run.scouting) return;
+      if (Math.random() < 0.5) {
+        run.scouting = false;
+        run.visibleEnemyIndex = null;
+        run.locked = false;
+        setBattleMessage("撤退失敗！你被敵人追上，只能強制進入戰鬥。");
+        render();
+        return;
+      }
+      finishRun("Retreat", 0.2);
+    }
+
+    function retreat() {
+      finishRun("Retreat");
+    }
+
+    function finishRun(result, lootRate = 1) {
+      const originalDeck = [...state.deck];
+      const remainingCards = [...run.deck, ...run.hand];
+      run.keptGold = result === "Defeat" ? 0 : Math.floor(run.goldEarned * lootRate);
+      run.keptNewCards = result === "Defeat" ? [] : run.newCards.filter(() => Math.random() < lootRate);
+      if (result === "Defeat") {
+        originalDeck.forEach(id => removeOne(state.collection, id));
+        state.deck = [];
+      } else {
+        run.lostCards.forEach(id => removeOne(state.collection, id));
+        state.gold += run.keptGold;
+        state.collection.push(...run.keptNewCards);
+        reconcileDeckWithCollection();
+      }
+      saveState();
+      showResult(result, remainingCards, originalDeck);
+      run = null;
+      clearRun();
+      setView("result");
+    }
+
+    function names(ids) {
+      const counts = countCards(ids);
+      return Object.keys(counts).map(id => `${cardById[id].name} x${counts[id]}`).join("、") || "無";
+    }
+
+    function renderCardSummary(ids, emptyText = "無") {
+      const counts = countCards(ids);
+      const sortedIds = sortedCountKeys(counts);
+      if (!sortedIds.length) return emptyText;
+      return `<div class="deck-summary-list">${sortedIds.map(id => `
+        <div class="deck-summary-item ${cardById[id].rarity}">
+          <strong>${cardById[id].name}</strong>
+          <span class="deck-summary-count">x${counts[id]}</span>
+        </div>
+      `).join("")}</div>`;
+    }
+
+    function showResult(result, remainingCards, originalDeck) {
+      const resultText = result === "Victory" ? "討伐成功" : result === "Retreat" ? "安全撤退" : "討伐失敗";
+      const lost = result === "Defeat" ? originalDeck : run.lostCards;
+      els.resultBox.innerHTML = `
+        <div>討伐結果：<strong>${resultText}</strong></div>
+        <div>挑戰層數：${run.floor}</div>
+        <div>賺取金幣：<span class="gold">${run.keptGold ?? run.goldEarned}</span></div>
+        <div>獲得卡牌：${result === "Defeat" ? "無" : renderCardSummary(run.keptNewCards ?? run.newCards)}</div>
+        <div>失去卡牌：${renderCardSummary(lost)}</div>
+        <div>剩餘卡牌：${result === "Defeat" ? "無，本次討伐編組全數失去" : renderCardSummary(remainingCards)}</div>
+      `;
+    }
+
+    function openShop() {
+      ensureShop();
+      els.shopModal.classList.remove("hidden");
+      els.shopMessage.textContent = "";
+      renderShop();
+    }
+
+    function renderShop() {
+      ensureShop();
+      els.shopItems.innerHTML = state.shop.items.map(renderShopCard).join("");
+      [...els.shopItems.querySelectorAll("button[data-shop-index]")].forEach(button => {
+        button.addEventListener("click", () => buyShopItem(Number(button.dataset.shopIndex)));
+      });
+    }
+
+    function buyShopItem(index) {
+      ensureShop();
+      const item = state.shop.items[index];
+      if (!item || item.sold) return;
+      if (state.gold < item.price) {
+        els.shopMessage.textContent = "Gold 不足，無法購買。";
+        return;
+      }
+      state.gold -= item.price;
+      state.collection.push(item.id);
+      item.sold = true;
+      saveState();
+      els.shopMessage.textContent = `購買了 ${cardById[item.id].name}（${cardById[item.id].rarity}）。`;
+      render();
+      renderShop();
+    }
+
+    function shopGacha() {
+      performShopGacha(1);
+    }
+
+    function shopTenGacha() {
+      performShopGacha(10);
+    }
+
+    function performShopGacha(amount) {
+      const totalCost = GACHA_COST * amount;
+      if (state.gold < totalCost) {
+        els.shopMessage.textContent = `Gold 不足，無法${amount === 10 ? "十連抽" : "抽卡"}。`;
+        return;
+      }
+      state.gold -= totalCost;
+      const gained = Array.from({ length: amount }, () => weightedGacha());
+      state.collection.push(...gained);
+      saveState();
+      els.shopMessage.textContent = "";
+      showGachaResult(gained);
+      render();
+    }
+
+    function showGachaResult(ids) {
+      els.gachaResultList.classList.toggle("single", ids.length === 1);
+      els.gachaResultList.classList.toggle("ten", ids.length > 1);
+      els.gachaResultList.innerHTML = ids.map((id, index) => {
+        const html = renderCard(id);
+        return html.replace('class="card', `style="animation-delay: ${index * 0.11}s" class="card`);
+      }).join("");
+      els.gachaResultModal.classList.remove("hidden");
+    }
+
+    function showEmergencySupplyModal() {
+      supplyClaimed = false;
+      els.supplyModal.classList.remove("hidden");
+      els.supplyMessage.textContent = "";
+      els.confirmSupplyBtn.classList.add("hidden");
+      document.querySelectorAll(".chest").forEach(chest => chest.disabled = false);
+    }
+
+    function claimEmergencySupply() {
+      if (supplyClaimed) return;
+      supplyClaimed = true;
+      document.querySelectorAll(".chest").forEach(chest => chest.disabled = true);
+      const roll = Math.random();
+      const gained = baseSupplyCards();
+      let tier = "A";
+      if (roll >= 0.9) {
+        tier = "C";
+        gained.push(...randomCardsByRarity("Rare", 2), ...randomCardsByRarity("Epic", 2));
+      } else if (roll >= 0.6) {
+        tier = "B";
+        gained.push(...randomCardsByRarity("Rare", 2));
+      }
+      state.collection.push(...gained);
+      state.deck = [];
+      saveState();
+      els.supplyMessage.innerHTML = `獲得 ${tier} 補給：<br>${names(gained)}`;
+      els.confirmSupplyBtn.classList.remove("hidden");
+    }
+
+    function randomCardsByRarity(rarity, amount) {
+      const pool = cards.filter(card => card.rarity === rarity).map(card => card.id);
+      return Array.from({ length: amount }, () => pick(pool));
+    }
+
+    els.showDeckBtn.addEventListener("click", () => setView("deck"));
+    els.backHomeFromDeck.addEventListener("click", () => setView("home"));
+    els.startRunBtn.addEventListener("click", startRun);
+    els.startRunFromDeck.addEventListener("click", startRun);
+    els.openShopBtn.addEventListener("click", openShop);
+    els.shopGachaBtn.addEventListener("click", shopGacha);
+    els.shopTenGachaBtn.addEventListener("click", shopTenGacha);
+    els.closeShopBtn.addEventListener("click", () => els.shopModal.classList.add("hidden"));
+    els.confirmGachaResultBtn.addEventListener("click", () => els.gachaResultModal.classList.add("hidden"));
+    els.revealBtn.addEventListener("click", reveal);
+    els.settleDefeatBtn.addEventListener("click", () => {
+      if (!run || !run.awaitingDefeatSettlement) return;
+      finishRun("Defeat");
+    });
+    els.retreatAfterWinBtn.addEventListener("click", () => {
+      if (!run || !run.awaitingPostWinChoice) return;
+      finishRun("Retreat", 0.4);
+    });
+    els.continueAfterWinBtn.addEventListener("click", continueAfterWin);
+    els.scoutRetreatBtn.addEventListener("click", scoutRetreat);
+    els.scoutContinueBtn.addEventListener("click", continueFromScout);
+    els.enemyLeftCard.addEventListener("click", () => chooseEnemyTarget(0));
+    els.enemyRightCard.addEventListener("click", () => chooseEnemyTarget(1));
+    els.cancelTargetBtn.addEventListener("click", () => {
+      if (!run) return;
+      run.pendingTarget = null;
+      setBattleMessage("已取消選擇目標。");
+      render();
+    });
+    els.returnHomeBtn.addEventListener("click", () => setView("home"));
+    els.confirmSupplyBtn.addEventListener("click", () => {
+      els.supplyModal.classList.add("hidden");
+      render();
+    });
+    document.querySelectorAll(".chest").forEach(chest => chest.addEventListener("click", claimEmergencySupply));
+    els.resetBtn.addEventListener("click", () => {
+      if (!confirm("確定要重置存檔？")) return;
+      state = defaultState();
+      run = null;
+      saveState();
+      clearRun();
+      setView("home");
+    });
+
+    saveState();
+    setView(run ? "battle" : "home");
+  </script>
+</body>
+</html>
