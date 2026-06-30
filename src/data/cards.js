@@ -1,0 +1,23 @@
+export const CARDS = [
+  { id: "escape", name: "回家卷軸", rarity: "Common", cost: 1, desc: "立即結束本次討伐，保留未使用卡牌與本次獎勵", source: "初始、掉落、抽卡" },
+  { id: "fireball", name: "火球術", rarity: "Common", cost: 1, desc: "指定一張敵方數字牌 +10", source: "初始、掉落、抽卡" },
+  { id: "ice", name: "冰錐術", rarity: "Common", cost: 1, desc: "指定一張敵方數字牌 -10", source: "初始、掉落、抽卡" },
+  { id: "blast", name: "爆炎術", rarity: "Common", cost: 1, desc: "指定一張敵方數字牌 +20", source: "掉落、抽卡" },
+  { id: "frost", name: "極寒術", rarity: "Common", cost: 1, desc: "指定一張敵方數字牌 -20", source: "掉落、抽卡" },
+  { id: "shuffle", name: "命運洗牌", rarity: "Common", cost: 1, desc: "重抽指定一張敵方數字牌", source: "掉落、抽卡" },
+  { id: "mirrorSwap", name: "鏡像置換", rarity: "Common", cost: 1, desc: "指定一張敵方牌與自己的牌交換，自己的牌仍不可見", source: "掉落、抽卡" },
+  { id: "giant", name: "巨人化", rarity: "Rare", cost: 2, desc: "指定一張敵方數字牌 x2，最高 100", source: "抽卡、Boss" },
+  { id: "shrink", name: "縮小術", rarity: "Rare", cost: 2, desc: "指定一張敵方數字牌 /2，無條件捨去", source: "抽卡、Boss" },
+  { id: "void", name: "虛無", rarity: "Rare", cost: 2, desc: "指定一張敵方數字牌變成 0", source: "抽卡" },
+  { id: "oracle", name: "神諭", rarity: "Rare", cost: 2, desc: "指定一張敵方數字牌變成 100", source: "抽卡" },
+  { id: "trueSight", name: "真視之眼", rarity: "Rare", cost: 3, desc: "查看自己的數字牌", source: "Boss、抽卡" },
+  { id: "twinMirror", name: "雙生魔鏡", rarity: "Rare", cost: 2, desc: "指定一張敵方數字牌，將自己的數字牌改成與指定的數字相同", source: "抽卡" },
+  { id: "reverse", name: "境界反轉", rarity: "Epic", cost: 2, desc: "本場勝利條件改為數字位於區間之外", source: "Boss、抽卡" },
+  { id: "resonance", name: "魔力共鳴", rarity: "Epic", cost: 1, desc: "下一張魔法卡效果加倍", source: "抽卡" },
+  { id: "echo", name: "魔法迴響", rarity: "Epic", cost: 1, desc: "再次發動上一張使用過的魔法卡", source: "抽卡" },
+  { id: "omniscience", name: "貪婪之眼", rarity: "Epic", cost: 2, desc: "立即抽三張牌", source: "Boss" },
+  { id: "stasis", name: "命運凝滯", rarity: "Legendary", cost: 2, desc: "Reveal 後若失敗，可重新使用魔法卡並再次判定一次", source: "Boss" },
+  { id: "balance", name: "命運天秤", rarity: "Legendary", cost: 2, desc: "將自己的棄牌區與牌庫中的卡牌交換", source: "Boss" },
+  { id: "chaos", name: "混沌風暴", rarity: "Legendary", cost: 2, desc: "敵方兩張數字牌全部重新生成", source: "Boss" },
+  { id: "world", name: "世界重構", rarity: "Legendary", cost: 2, desc: "將敵方兩張數字牌變成 0 與 100", source: "Boss" }
+];
