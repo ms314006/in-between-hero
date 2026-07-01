@@ -1,8 +1,10 @@
 import { CardIcon } from "./CardIcon.jsx";
 
 export function CompactCardDisplay({ id, card, count }) {
+  const title = count == null ? card.name : `${card.name}｜持有：${count} 張`;
+
   return (
-    <div className={`compact-card ${card.rarity}`} data-card-id={id} title={`${card.name}｜持有：${count} 張`}>
+    <div className={`compact-card ${card.rarity}`} data-card-id={id} title={title}>
       <div className="compact-card-inner" aria-hidden="true">
         <div className="compact-card-title-block" />
         <div className="compact-card-art">

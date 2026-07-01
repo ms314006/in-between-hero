@@ -79,7 +79,7 @@ export function initializeGame() {
       savedRun.newCards ||= [];
       savedRun.log ||= [];
       savedRun.pendingTarget = null;
-      savedRun.entering = false;
+      savedRun.enemyEntering = false;
       if (savedRun.revealResult && !savedRun.awaitingDefeatSettlement && !savedRun.awaitingPostWinChoice) {
         savedRun.revealResult = null;
         savedRun.playerRevealed = false;
@@ -268,25 +268,62 @@ export function initializeGame() {
       const valid = state.deck.length > 0 && deckCost() <= MAX_COST;
       els.startRunBtn.disabled = !valid;
       els.startRunFromDeck.disabled = !valid;
+      const invalidReason = valid
+        ? ""
+        : state.deck.length === 0
+          ? "目前沒有任何卡牌編組"
+          : "目前編組大於 Cost 限制";
+      els.homeMessage.textContent = invalidReason;
+      els.homeMessage.classList.toggle("danger", !!invalidReason);
+      els.deckMessage.textContent = invalidReason;
     }
 
     function renderDeckBuilder() {
       const available = availableCollection();
       const availableCounts = countCards(available);
       const availableIds = sortedCountKeys(availableCounts);
-      els.deckCollectionList.innerHTML = availableIds.map(id => renderCard(id, { count: availableCounts[id], buttonLabel: "加入編組" })).join("") || "<p class='muted'>沒有可加入的卡牌。</p>";
-      [...els.deckCollectionList.querySelectorAll(".card")].forEach((el, index) => {
+      els.deckCollectionList.innerHTML = availableIds.map(id => renderCollectionCard(id, availableCounts[id])).join("") || "<p class='muted'>沒有可加入的卡牌。</p>";
+      [...els.deckCollectionList.querySelectorAll(".compact-card")].forEach((el, index) => {
         const id = availableIds[index];
-        el.querySelector("button").addEventListener("click", () => addToDeck(id));
+        bindCardPress(el, id, availableCounts[id], () => addToDeck(id));
       });
 
       const deckCounts = countCards(state.deck);
       const deckIds = sortedCountKeys(deckCounts);
-      els.deckList.innerHTML = deckIds.map(id => renderCard(id, { count: deckCounts[id], buttonLabel: "移出編組" })).join("") || "<p class='muted'>尚未選卡。</p>";
-      [...els.deckList.querySelectorAll(".card")].forEach((el, index) => {
+      els.deckList.innerHTML = deckIds.map(id => renderCollectionCard(id, deckCounts[id])).join("") || "<p class='muted'>尚未選卡。</p>";
+      [...els.deckList.querySelectorAll(".compact-card")].forEach((el, index) => {
         const id = deckIds[index];
-        el.querySelector("button").addEventListener("click", () => removeFromDeck(id));
+        bindCardPress(el, id, deckCounts[id], () => removeFromDeck(id));
       });
+    }
+
+    function bindCardPress(el, id, count, onPress) {
+      let pressTimer = null;
+      let longPressed = false;
+
+      const clearPressTimer = () => {
+        if (pressTimer) clearTimeout(pressTimer);
+        pressTimer = null;
+      };
+
+      el.addEventListener("pointerdown", () => {
+        longPressed = false;
+        clearPressTimer();
+        pressTimer = setTimeout(() => {
+          longPressed = true;
+          showCardDetail(id, count);
+        }, 520);
+      });
+
+      el.addEventListener("pointerup", () => {
+        clearPressTimer();
+        if (longPressed) return;
+        onPress();
+      });
+
+      el.addEventListener("pointerleave", clearPressTimer);
+      el.addEventListener("pointercancel", clearPressTimer);
+      el.addEventListener("contextmenu", event => event.preventDefault());
     }
 
     function renderBattle() {
@@ -299,9 +336,9 @@ export function initializeGame() {
       els.playerCard.textContent = run.playerRevealed || run.peekPlayer ? run.player : "?";
       els.playerNumberCard.classList.toggle("player-success", run.revealResult === "success");
       els.playerNumberCard.classList.toggle("player-fail", run.revealResult === "fail");
-      els.battlePanel.classList.toggle("entering", !!run.entering);
-      els.enemyLeftCard.classList.toggle("targetable", !!run.pendingTarget && !run.locked);
-      els.enemyRightCard.classList.toggle("targetable", !!run.pendingTarget && !run.locked);
+      els.battlePanel.classList.remove("entering");
+      els.enemyLeftCard.classList.toggle("targetable", !!run.pendingTarget && !run.locked && !run.enemyEntering);
+      els.enemyRightCard.classList.toggle("targetable", !!run.pendingTarget && !run.locked && !run.enemyEntering);
       els.cancelTargetBtn.classList.toggle("hidden", !run.pendingTarget || run.locked);
       els.settleDefeatBtn.classList.toggle("hidden", !run.awaitingDefeatSettlement);
       els.retreatAfterWinBtn.classList.toggle("hidden", !run.awaitingPostWinChoice);
@@ -317,15 +354,13 @@ export function initializeGame() {
       const sortedHand = run.hand.map((id, index) => ({ id, index })).sort((a, b) => compareCardIds(a.id, b.id) || a.index - b.index);
       selectedHandIndex = run.hand.length ? (run.hand[selectedHandIndex] ? selectedHandIndex : sortedHand[0].index) : 0;
       renderMobileHandPreview();
-      els.handList.innerHTML = sortedHand.map(item => renderCard(item.id, { buttonLabel: "使用" })).join("") || "<p class='muted'>沒有手牌。</p>";
-      const handCardEls = [...els.handList.querySelectorAll(".card")];
+      els.handList.innerHTML = sortedHand.map(item => renderCollectionCard(item.id)).join("") || "<p class='muted'>沒有手牌。</p>";
+      const handCardEls = [...els.handList.querySelectorAll(".compact-card")];
       handCardEls.forEach((el, index) => {
         const handIndex = sortedHand[index].index;
         el.classList.toggle("selected", handIndex === selectedHandIndex);
-        el.querySelector("button").disabled = run.locked || !!run.pendingTarget || run.scouting;
-        el.addEventListener("click", event => {
+        bindCardPress(el, sortedHand[index].id, null, () => {
           if (window.matchMedia("(max-width: 760px)").matches) {
-            event.preventDefault();
             selectedHandIndex = handIndex;
             renderMobileHandPreview();
             handCardEls.forEach((cardEl, cardIndex) => {
@@ -333,10 +368,12 @@ export function initializeGame() {
             });
             return;
           }
-          if (event.target.tagName === "BUTTON") useCard(handIndex);
+          if (!run.locked && !run.pendingTarget && !run.scouting && !run.enemyEntering) useCard(handIndex);
         });
       });
-      els.revealBtn.disabled = run.locked || !!run.pendingTarget || run.scouting;
+      els.revealBtn.disabled = run.locked || !!run.pendingTarget || run.scouting || run.enemyEntering;
+      els.scoutRetreatBtn.disabled = !!run.enemyEntering;
+      els.scoutContinueBtn.disabled = !!run.enemyEntering;
     }
 
     function renderMobileHandPreview() {
@@ -346,14 +383,16 @@ export function initializeGame() {
       }
       const id = run.hand[selectedHandIndex];
       const card = cardById[id];
-      const disabled = run.locked || !!run.pendingTarget || run.scouting;
+      const disabled = run.locked || !!run.pendingTarget || run.scouting || run.enemyEntering;
       els.mobileHandPreview.innerHTML = `
-        <div class="section-title-row">
-          <strong>${card.name}</strong>
-          <span class="rarity ${card.rarity}">${card.rarity}</span>
+        <div class="mobile-hand-preview-layout">
+          <div class="mobile-hand-preview-main">
+            <span class="rarity ${card.rarity}">${card.rarity}</span>
+            <strong>${card.name}</strong>
+            <button id="mobileUseCardBtn" class="nes-btn is-primary" ${disabled ? "disabled" : ""}>發動</button>
+          </div>
+          <p>${card.desc}</p>
         </div>
-        <p>Cost ${card.cost}｜${card.desc}</p>
-        <div class="actions"><button id="mobileUseCardBtn" class="nes-btn is-primary" ${disabled ? "disabled" : ""}>發動</button></div>
       `;
       const button = document.getElementById("mobileUseCardBtn");
       if (button) button.addEventListener("click", () => useCard(selectedHandIndex));
@@ -391,7 +430,7 @@ export function initializeGame() {
         playerRevealed: false,
         peekPlayer: false,
         outsideWin: false,
-        locked: false,
+        locked: true,
         pendingTarget: null,
         revealResult: null,
         awaitingDefeatSettlement: false,
@@ -400,17 +439,13 @@ export function initializeGame() {
         visibleEnemyIndex: null,
         pendingWinGold: 0,
         pendingWinDrop: null,
-        entering: true
+        enemyEntering: true
       };
       drawFromRunDeck(5);
       newBattle();
       setBattleMessage("討伐開始。看清敵方兩張牌，再決定是否使用手牌。");
       setView("battle");
-      setTimeout(() => {
-        if (!run) return;
-        run.entering = false;
-        render();
-      }, 700);
+      startEnemyEntrance(true);
     }
 
     function shuffle(list) {
@@ -424,6 +459,17 @@ export function initializeGame() {
     function startBattleSpritesIdle() {
       playSpriteAction(els.playerBattleSprite, SPRITES.swordsmanCyan, "idle");
       playSpriteAction(els.enemyBattleSprite, SPRITES.skeletonSoldier, "idle");
+    }
+
+    function startEnemyEntrance(unlockAfter = false) {
+      if (!run) return;
+      run.enemyEntering = true;
+      playSpriteAction(els.enemyBattleSprite, SPRITES.skeletonSoldier, "enter").then(() => {
+        if (!run) return;
+        run.enemyEntering = false;
+        if (unlockAfter) run.locked = false;
+        render();
+      });
     }
 
     async function playBattleResultAnimation(won) {
@@ -489,6 +535,7 @@ export function initializeGame() {
       if (id !== "resonance") run.lastCard = id;
       run.log.push(`${card.name}${multiplier > 1 ? " x2" : ""}：${card.desc}`);
       run.pendingTarget = null;
+      setBattleMessage(`已發動 ${card.name}。`);
       render();
     }
 
@@ -520,8 +567,8 @@ export function initializeGame() {
       const low = Math.min(run.enemy[0], run.enemy[1]);
       const high = Math.max(run.enemy[0], run.enemy[1]);
       setBattleMessage(won
-        ? `Success! 你的 ${run.player} 通過了 ${low} 與 ${high} 的判定。`
-        : `Failed! 你的 ${run.player} 沒有通過 ${low} 與 ${high} 的判定。`);
+        ? `成功擊敗魔物！你的 ${run.player} 在 ${low} 與 ${high} 之間。`
+        : `被魔物擊敗了！你的 ${run.player} 沒有在 ${low} 與 ${high} 的之間。`);
       render();
       const shouldSkipDeathSequence = !won && run.stasisReady && !run.stasisUsed;
       setTimeout(async () => {
@@ -538,7 +585,7 @@ export function initializeGame() {
         run.playerRevealed = false;
         run.locked = false;
         run.revealResult = null;
-        setBattleMessage("命運凝滯發動：本次 Reveal 失敗，但你可以繼續使用手牌後再次 Reveal。");
+        setBattleMessage("命運凝滯發動：本次戰鬥失敗，但你可以繼續使用手牌後再次戰鬥。");
         render();
         return;
       }
@@ -573,20 +620,16 @@ export function initializeGame() {
       drawFromRunDeck(1);
       newBattle();
       run.locked = true;
-      run.entering = true;
       run.scouting = true;
+      run.enemyEntering = true;
       run.visibleEnemyIndex = Math.random() < 0.5 ? 0 : 1;
       setBattleMessage("你進入下一場戰鬥，先看見一張敵方數字。可選擇撤退保留 20% 戰利品，但有 50% 機率撤退失敗。");
       render();
-      setTimeout(() => {
-        if (!run) return;
-        run.entering = false;
-        render();
-      }, 700);
+      startEnemyEntrance(false);
     }
 
     function continueFromScout() {
-      if (!run || !run.scouting) return;
+      if (!run || !run.scouting || run.enemyEntering) return;
       run.scouting = false;
       run.visibleEnemyIndex = null;
       run.locked = false;
@@ -595,7 +638,7 @@ export function initializeGame() {
     }
 
     function scoutRetreat() {
-      if (!run || !run.scouting) return;
+      if (!run || !run.scouting || run.enemyEntering) return;
       if (Math.random() < 0.5) {
         run.scouting = false;
         run.visibleEnemyIndex = null;

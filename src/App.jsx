@@ -46,17 +46,18 @@ const appMarkup = String.raw`
           <button id="backHomeFromDeck" class="nes-btn">返回首頁</button>
           <button id="startRunFromDeck" class="nes-btn is-primary primary">用目前編組開始討伐</button>
         </div>
+        <p id="deckMessage" class="danger"></p>
       </div>
-      <div class="panel half">
-        <h3>可用收藏</h3>
-        <div id="deckCollectionList" class="card-list"></div>
-      </div>
-      <div class="panel half">
+      <div class="panel">
         <div class="section-title-row">
           <h3>本次討伐牌組</h3>
           <span class="pill">Deck Cost <span id="deckBuildCost">0 / 30</span></span>
         </div>
         <div id="deckList" class="card-list"></div>
+      </div>
+      <div class="panel">
+        <h3>可用收藏</h3>
+        <div id="deckCollectionList" class="card-list"></div>
       </div>
     </section>
 
@@ -71,11 +72,11 @@ const appMarkup = String.raw`
         <div class="battle-cards">
           <div class="battle-side enemy-side">
             <div class="enemy-number-cluster">
-              <div id="enemyLeftCard" class="number-card nes-container with-title is-dark">
+              <div id="enemyLeftCard" class="number-card nes-container with-title">
                 <p class="title">LEFT</p>
                 <div class="number-card-content"><div id="enemyLeft" class="num">0</div></div>
               </div>
-              <div id="enemyRightCard" class="number-card nes-container with-title is-dark">
+              <div id="enemyRightCard" class="number-card nes-container with-title">
                 <p class="title">RIGHT</p>
                 <div class="number-card-content"><div id="enemyRight" class="num">0</div></div>
               </div>
@@ -88,7 +89,7 @@ const appMarkup = String.raw`
               <div class="player-thought-step small" aria-hidden="true"></div>
               <div class="player-thought-step large" aria-hidden="true"></div>
               <div class="player-thought">
-                <div id="playerNumberCard" class="number-card nes-container with-title is-dark">
+                <div id="playerNumberCard" class="number-card nes-container with-title">
                   <p class="title">YOUR</p>
                   <div class="number-card-content"><div id="playerCard" class="num">?</div></div>
                 </div>
@@ -108,8 +109,8 @@ const appMarkup = String.raw`
         <div id="targetBanner" class="target-banner hidden"></div>
         <p id="battleMessage" class="muted"></p>
       </div>
-      <div class="panel third">
-        <h3>已發動紀錄</h3>
+      <div class="panel third battle-log-panel nes-container with-title">
+        <p class="title">已發動紀錄</p>
         <div id="usedLog" class="log"></div>
       </div>
       <div id="handPanel" class="panel">
@@ -130,7 +131,7 @@ const appMarkup = String.raw`
         <h2>結算畫面</h2>
         <div id="resultBox" class="result-box"></div>
         <div class="actions">
-          <button id="returnHomeBtn" class="nes-btn is-primary primary">Return Home</button>
+          <button id="returnHomeBtn" class="nes-btn is-primary primary">回家</button>
         </div>
       </div>
     </section>

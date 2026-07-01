@@ -14,6 +14,7 @@ export function getElements() {
     showDeckBtn: document.getElementById("showDeckBtn"),
     openShopBtn: document.getElementById("openShopBtn"),
     homeMessage: document.getElementById("homeMessage"),
+    deckMessage: document.getElementById("deckMessage"),
     collectionList: document.getElementById("collectionList"),
     deckSummary: document.getElementById("deckSummary"),
     deckCollectionList: document.getElementById("deckCollectionList"),

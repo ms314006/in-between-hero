@@ -13,13 +13,15 @@ export function playSpriteAction(element, sprite, actionName) {
     clearTimeout(spriteTimers.get(element));
     element.classList.toggle("defending", actionName === "defend");
     element.classList.remove("dying");
-    if (action.effect?.type === "fallDown") void element.offsetWidth;
+    element.classList.remove("walking-in");
+    if (["fallDown", "walkIn"].includes(action.effect?.type)) void element.offsetWidth;
     element.style.setProperty("--sprite-image", `url("${sprite.image}")`);
     let frameIndex = 0;
 
     const finish = () => {
       spriteTimers.delete(element);
       element.classList.remove("defending");
+      element.classList.remove("walking-in");
       if (action.effect?.type !== "fallDown" || action.returnTo !== false) element.classList.remove("dying");
       if (action.returnTo !== false) playSpriteAction(element, sprite, "idle");
       resolve();
@@ -30,6 +32,9 @@ export function playSpriteAction(element, sprite, actionName) {
       element.style.setProperty("--sprite-position", position);
       if (action.effect?.type === "fallDown") {
         element.classList.add("dying");
+      }
+      if (action.effect?.type === "walkIn") {
+        element.classList.add("walking-in");
       }
       frameIndex += 1;
 

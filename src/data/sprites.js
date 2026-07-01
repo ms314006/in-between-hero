@@ -62,6 +62,14 @@ export const SPRITES = {
           flashCount: 3
         }
       },
+      enter: {
+        frames: [[4, 1], [4, 2], [4, 3], [4, 4], [4, 5]],
+        frameDuration: 200,
+        loop: false,
+        effect: {
+          type: "walkIn"
+        }
+      },
       death: {
         frames: [[1, 1]],
         frameDuration: 600,
