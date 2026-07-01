@@ -21,7 +21,15 @@ import { clamp as clampBase, pick as pickBase, randInt as randIntBase } from "./
 import { ensureShop as ensureShopBase, generateShop as generateShopBase, rollGacha } from "./game/shop.js";
 import { drawFromRunDeck as drawFromRunDeckBase, shuffle as shuffleBase } from "./game/run.js";
 import { getElements } from "./ui/dom.js";
-import { renderCard as renderCardBase, renderCardSummary as renderCardSummaryBase, renderCollectionCard as renderCollectionCardBase, renderShopCard as renderShopCardBase } from "./ui/cardViews.js";
+import { renderCard as renderCardBase, renderCardSummary as renderCardSummaryBase, renderCollectionCard as renderCollectionCardBase, renderFullCollectionCard as renderFullCollectionCardBase, renderShopCard as renderShopCardBase } from "./ui/cardViews.js";
+import { renderIconMarkup } from "./ui/CardIcon.jsx";
+import { CoinSpin } from "@pxlkit/gamification";
+
+let initialized = false;
+
+export function initializeGame() {
+    if (initialized) return;
+    initialized = true;
 
     const cards = CARDS;
     const enemyNames = ENEMY_NAMES;
@@ -37,6 +45,8 @@ import { renderCard as renderCardBase, renderCardSummary as renderCardSummaryBas
     let selectedHandIndex = 0;
 
     const els = getElements();
+    els.goldIcon.innerHTML = renderIconMarkup(CoinSpin, { className: "gold-icon-svg", size: 32 });
+    els.shopGoldIcon.innerHTML = renderIconMarkup(CoinSpin, { className: "shop-gold-icon-svg", size: 32 });
 
     function defaultState() {
       return {
@@ -91,13 +101,26 @@ import { renderCard as renderCardBase, renderCardSummary as renderCardSummaryBas
       els.battleMessage.textContent = message;
     }
 
+    function applyNESStyles() {
+      document.querySelectorAll(".panel, .modal").forEach(element => {
+        element.classList.add("nes-container", "is-dark");
+      });
+      document.querySelectorAll("button").forEach(button => {
+        button.classList.add("nes-btn");
+        if (button.classList.contains("primary")) button.classList.add("is-primary");
+      });
+      document.querySelectorAll(".log").forEach(element => {
+        element.classList.add("nes-container", "is-dark");
+      });
+    }
+
     function frameToBackgroundPosition(sprite, frame) {
       const [row, col] = frame;
       return `${-(col - 1) * sprite.frameWidth}px ${-(row - 1) * sprite.frameHeight}px`;
     }
 
     function playSpriteAction(element, sprite, actionName) {
-      playSpriteActionBase(element, sprite, actionName);
+      return playSpriteActionBase(element, sprite, actionName);
     }
 
     function countCards(ids) {
@@ -194,6 +217,10 @@ import { renderCard as renderCardBase, renderCardSummary as renderCardSummaryBas
       return renderCollectionCardBase(id, count, cardById);
     }
 
+    function renderFullCollectionCard(id, count) {
+      return renderFullCollectionCardBase(id, count, cardById);
+    }
+
     function renderShopCard(item, index) {
       return renderShopCardBase(item, index, cardById);
     }
@@ -205,11 +232,13 @@ import { renderCard as renderCardBase, renderCardSummary as renderCardSummaryBas
       [els.homeView, els.deckView, els.battleView, els.resultView].forEach(el => el.classList.add("hidden"));
       els[`${view}View`].classList.remove("hidden");
       render();
+      if (view === "battle") startBattleSpritesIdle();
       if (view === "home" && needsEmergencySupply()) showEmergencySupplyModal();
     }
 
     function render() {
       els.gold.textContent = state.gold;
+      els.shopGold.textContent = state.gold;
       const cost = deckCost();
       els.deckCost.textContent = `${cost} / ${MAX_COST}`;
       els.deckCost.className = cost > MAX_COST ? "danger" : "";
@@ -224,13 +253,13 @@ import { renderCard as renderCardBase, renderCardSummary as renderCardSummaryBas
     function renderHome() {
       const collectionCounts = countCards(state.collection);
       els.collectionList.innerHTML = sortedCountKeys(collectionCounts).map(id => renderCollectionCard(id, collectionCounts[id])).join("");
-      [...els.collectionList.querySelectorAll(".collection-card")].forEach(card => {
-        card.addEventListener("click", () => card.classList.toggle("expanded"));
+      [...els.collectionList.querySelectorAll(".compact-card")].forEach(card => {
+        card.addEventListener("click", () => showCardDetail(card.dataset.cardId, collectionCounts[card.dataset.cardId]));
       });
       const deckCounts = countCards(state.deck);
       els.deckSummary.innerHTML = Object.keys(deckCounts).length
         ? `<div class="deck-summary-list">${sortedCountKeys(deckCounts).map(id => `
-          <div class="deck-summary-item ${cardById[id].rarity}">
+          <div class="deck-summary-item nes-container is-dark ${cardById[id].rarity}">
             <strong>${cardById[id].name}</strong>
             <span class="deck-summary-count">x${deckCounts[id]}</span>
           </div>
@@ -324,7 +353,7 @@ import { renderCard as renderCardBase, renderCardSummary as renderCardSummaryBas
           <span class="rarity ${card.rarity}">${card.rarity}</span>
         </div>
         <p>Cost ${card.cost}｜${card.desc}</p>
-        <div class="actions"><button id="mobileUseCardBtn" class="primary" ${disabled ? "disabled" : ""}>發動</button></div>
+        <div class="actions"><button id="mobileUseCardBtn" class="nes-btn is-primary" ${disabled ? "disabled" : ""}>發動</button></div>
       `;
       const button = document.getElementById("mobileUseCardBtn");
       if (button) button.addEventListener("click", () => useCard(selectedHandIndex));
@@ -392,6 +421,23 @@ import { renderCard as renderCardBase, renderCardSummary as renderCardSummaryBas
       drawFromRunDeckBase(run, amount);
     }
 
+    function startBattleSpritesIdle() {
+      playSpriteAction(els.playerBattleSprite, SPRITES.swordsmanCyan, "idle");
+      playSpriteAction(els.enemyBattleSprite, SPRITES.skeletonSoldier, "idle");
+    }
+
+    async function playBattleResultAnimation(won) {
+      if (won) {
+        await playSpriteAction(els.playerBattleSprite, SPRITES.swordsmanCyan, "attack");
+        await playSpriteAction(els.enemyBattleSprite, SPRITES.skeletonSoldier, "defend");
+        await playSpriteAction(els.enemyBattleSprite, SPRITES.skeletonSoldier, "death");
+        return;
+      }
+      await playSpriteAction(els.enemyBattleSprite, SPRITES.skeletonSoldier, "attack");
+      await playSpriteAction(els.playerBattleSprite, SPRITES.swordsmanCyan, "defend");
+      await playSpriteAction(els.playerBattleSprite, SPRITES.swordsmanCyan, "death");
+    }
+
     function newBattle() {
       run.enemy = generateEnemyCardsByFloor(run.floor);
       run.player = randInt(0, 100);
@@ -409,6 +455,7 @@ import { renderCard as renderCardBase, renderCardSummary as renderCardSummaryBas
       run.scouting = false;
       run.visibleEnemyIndex = null;
       run.log = [];
+      startBattleSpritesIdle();
     }
 
     function useCard(index, replayId = null, targetIndex = null) {
@@ -476,7 +523,11 @@ import { renderCard as renderCardBase, renderCardSummary as renderCardSummaryBas
         ? `Success! 你的 ${run.player} 通過了 ${low} 與 ${high} 的判定。`
         : `Failed! 你的 ${run.player} 沒有通過 ${low} 與 ${high} 的判定。`);
       render();
-      setTimeout(() => resolveReveal(won), 1050);
+      const shouldSkipDeathSequence = !won && run.stasisReady && !run.stasisUsed;
+      setTimeout(async () => {
+        if (!shouldSkipDeathSequence) await playBattleResultAnimation(won);
+        resolveReveal(won);
+      }, 350);
     }
 
     function resolveReveal(won) {
@@ -621,6 +672,12 @@ import { renderCard as renderCardBase, renderCardSummary as renderCardSummaryBas
       });
     }
 
+    function showCardDetail(id, count) {
+      if (!cardById[id]) return;
+      els.cardDetailContent.innerHTML = renderFullCollectionCard(id, count);
+      els.cardDetailModal.classList.remove("hidden");
+    }
+
     function buyShopItem(index) {
       ensureShop();
       const item = state.shop.items[index];
@@ -713,9 +770,9 @@ import { renderCard as renderCardBase, renderCardSummary as renderCardSummaryBas
     els.shopGachaBtn.addEventListener("click", shopGacha);
     els.shopTenGachaBtn.addEventListener("click", shopTenGacha);
     els.closeShopBtn.addEventListener("click", () => els.shopModal.classList.add("hidden"));
+    els.closeCardDetailBtn.addEventListener("click", () => els.cardDetailModal.classList.add("hidden"));
     els.confirmGachaResultBtn.addEventListener("click", () => els.gachaResultModal.classList.add("hidden"));
     els.heroTitleSprite.addEventListener("click", () => playSpriteAction(els.heroTitleSprite, SPRITES.swordsmanCyan, "attack"));
-    els.debugDefendBtn.addEventListener("click", () => playSpriteAction(els.heroTitleSprite, SPRITES.swordsmanCyan, "defend"));
     els.revealBtn.addEventListener("click", reveal);
     els.settleDefeatBtn.addEventListener("click", () => {
       if (!run || !run.awaitingDefeatSettlement) return;
@@ -752,6 +809,8 @@ import { renderCard as renderCardBase, renderCardSummary as renderCardSummaryBas
     });
 
     saveState();
+    applyNESStyles();
     playSpriteAction(els.heroTitleSprite, SPRITES.swordsmanCyan, "idle");
     setView(run ? "battle" : "home");
+}
   

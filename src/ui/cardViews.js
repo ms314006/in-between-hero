@@ -1,10 +1,15 @@
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { countCards, sortedCountKeys } from "../game/deck.js";
+import { CardDisplay } from "./CardDisplay.jsx";
+import { CompactCardDisplay } from "./CompactCardDisplay.jsx";
+import { ShopCardDisplay } from "./ShopCardDisplay.jsx";
 
 export function renderCard(id, cardById, options = {}) {
   const card = cardById[id];
-  const button = options.buttonLabel ? `<button ${options.disabled ? "disabled" : ""}>${options.buttonLabel}</button>` : "";
+  const button = options.buttonLabel ? `<button class="nes-btn" ${options.disabled ? "disabled" : ""}>${options.buttonLabel}</button>` : "";
   return `
-    <div class="card ${card.rarity}">
+    <div class="card nes-container is-dark ${card.rarity}">
       <header><strong>${card.name}</strong><span class="rarity ${card.rarity}">${card.rarity}</span></header>
       <p>Cost ${card.cost}｜${card.desc}</p>
       ${options.count ? `<p>持有：${options.count}</p>` : ""}
@@ -15,24 +20,17 @@ export function renderCard(id, cardById, options = {}) {
 
 export function renderCollectionCard(id, count, cardById) {
   const card = cardById[id];
-  return `
-    <div class="collection-card ${card.rarity}" data-card-id="${id}">
-      <header><strong>${card.name}</strong><span class="rarity ${card.rarity}">${card.rarity}</span></header>
-      <p>持有：${count}</p>
-      <p class="collection-card-detail">Cost ${card.cost}｜${card.desc}</p>
-    </div>
-  `;
+  return renderToStaticMarkup(createElement(CompactCardDisplay, { id, card, count }));
+}
+
+export function renderFullCollectionCard(id, count, cardById) {
+  const card = cardById[id];
+  return renderToStaticMarkup(createElement(CardDisplay, { id, card, count }));
 }
 
 export function renderShopCard(item, index, cardById) {
   const card = cardById[item.id];
-  return `
-    <div class="shop-card ${card.rarity}">
-      <header><strong>${card.name}</strong><span class="rarity ${card.rarity}">${card.rarity}</span></header>
-      <p>Cost ${card.cost}｜${card.desc}</p>
-      <button data-shop-index="${index}" ${item.sold ? "disabled" : ""}>${item.sold ? "已售出" : `購買 ${item.price} Gold`}</button>
-    </div>
-  `;
+  return renderToStaticMarkup(createElement(ShopCardDisplay, { id: item.id, card, item, index }));
 }
 
 export function renderCardSummary(ids, cardById, rarityOrder, emptyText = "無") {
@@ -40,7 +38,7 @@ export function renderCardSummary(ids, cardById, rarityOrder, emptyText = "無")
   const sortedIds = sortedCountKeys(counts, cardById, rarityOrder);
   if (!sortedIds.length) return emptyText;
   return `<div class="deck-summary-list">${sortedIds.map(id => `
-    <div class="deck-summary-item ${cardById[id].rarity}">
+    <div class="deck-summary-item nes-container is-dark ${cardById[id].rarity}">
       <strong>${cardById[id].name}</strong>
       <span class="deck-summary-count">x${counts[id]}</span>
     </div>

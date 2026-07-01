@@ -4,52 +4,81 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>In-Between Hero MVP</title>
+  <link href="https://unpkg.com/nes.css@2.3.0/css/nes.min.css" rel="stylesheet">
   <style>
+    @font-face {
+      font-family: "Cubic 11";
+      src: url("./assets/fonts/Cubic_11.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
     :root {
       color-scheme: dark;
-      --bg: #14110f;
-      --panel: #211b18;
-      --panel-2: #2b241f;
-      --text: #f5eadc;
-      --muted: #bda995;
-      --line: #4b3c31;
-      --gold: #f2bd4b;
+      --bg: #FAF6E9;
+      --panel: #FFFDF6;
+      --panel-2: #FAF6E9;
+      --text: #3f4f2d;
+      --muted: #718055;
+      --line: #A0C878;
+      --gold: #e7c65f;
       --red: #e56b6f;
-      --green: #79c77b;
-      --blue: #7aa7ff;
-      --purple: #c084fc;
+      --green: #4f8f46;
+      --blue: #6d9fb8;
+      --purple: #b781b5;
+      --village-light: #FFFDF6;
+      --village-cream: #FAF6E9;
+      --village-field: #DDEB9D;
+      --village-leaf: #A0C878;
+      --village-ink: #3f4f2d;
     }
 
     * { box-sizing: border-box; }
+
+    html,
+    body,
+    pre,
+    code,
+    kbd,
+    samp,
+    button,
+    input,
+    select,
+    textarea {
+      font-family: "Cubic 11", system-ui, sans-serif;
+    }
 
     body {
       margin: 0;
       min-height: 100vh;
       background:
-        radial-gradient(circle at top left, rgba(242, 189, 75, 0.16), transparent 34rem),
-        linear-gradient(135deg, #100d0b, var(--bg));
+        radial-gradient(circle at 18% 8%, rgba(255, 253, 246, 0.76), transparent 22rem),
+        radial-gradient(circle at 88% 18%, rgba(221, 235, 157, 0.58), transparent 28rem),
+        linear-gradient(145deg, #FFFDF6 0%, #FAF6E9 48%, #DDEB9D 100%);
       color: var(--text);
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 12px;
+      line-height: 1.7;
     }
 
     button, select {
       font: inherit;
     }
 
-    button {
+    button:not(.nes-btn) {
       cursor: pointer;
       border: 1px solid var(--line);
       border-radius: 12px;
       padding: 10px 14px;
       color: var(--text);
-      background: #342a23;
+      background: #FFFDF6;
       transition: transform 0.08s ease, border-color 0.12s ease, background 0.12s ease;
     }
 
-    button:hover:not(:disabled) {
+    button:not(.nes-btn):hover:not(:disabled) {
       transform: translateY(-1px);
       border-color: var(--gold);
-      background: #43362c;
+      background: #FAF6E9;
     }
 
     button:disabled {
@@ -77,33 +106,47 @@
       gap: 12px;
       margin: 0;
       letter-spacing: 0.04em;
-      font-size: clamp(28px, 6vw, 56px);
+      font-size: clamp(14px, 3vw, 21px);
       line-height: 0.95;
     }
 
-    .hero-title-sprite {
+    .sprite-actor {
       position: relative;
       display: inline-block;
       width: 16px;
       height: 16px;
       flex: 0 0 auto;
-      cursor: pointer;
+      overflow: hidden;
+      image-rendering: pixelated;
+      --hero-sprite-scale: 2.5;
+      transform: scale(var(--hero-sprite-scale));
+      transform-origin: center;
+    }
+
+    .sprite-actor::before {
+      content: "";
+      position: absolute;
+      inset: 0;
       image-rendering: pixelated;
       background-image: var(--sprite-image, url("./assets/characters/SwordsmanCyan.png"));
       background-position: var(--sprite-position, 0 -32px);
       background-repeat: no-repeat;
       background-size: auto;
-      transform: scale(2.5);
-      transform-origin: center;
     }
 
-    .hero-title-sprite.defending::after {
+    .hero-title-sprite { cursor: pointer; }
+
+    .sprite-actor.dying::before {
+      animation: heroSpriteDeath 600ms ease-in both;
+    }
+
+    .sprite-actor.defending::after {
       content: "";
       position: absolute;
       inset: 0;
       background: rgba(232, 63, 99, 0.65);
-      -webkit-mask-image: url("./assets/characters/SwordsmanCyan.png");
-      mask-image: url("./assets/characters/SwordsmanCyan.png");
+      -webkit-mask-image: var(--sprite-image, url("./assets/characters/SwordsmanCyan.png"));
+      mask-image: var(--sprite-image, url("./assets/characters/SwordsmanCyan.png"));
       -webkit-mask-repeat: no-repeat;
       mask-repeat: no-repeat;
       -webkit-mask-position: var(--sprite-position, -16px -160px);
@@ -127,14 +170,34 @@
     }
 
     .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       border: 1px solid var(--line);
       border-radius: 999px;
       padding: 8px 12px;
-      background: rgba(33, 27, 24, 0.82);
+      background: rgba(255, 253, 246, 0.84);
       color: var(--muted);
     }
 
-    .gold { color: var(--gold); font-weight: 800; }
+    .gold-icon,
+    .gold-icon-svg {
+      display: block;
+      width: 32px;
+      height: 32px;
+    }
+
+    .gold-icon-svg svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .gold-pill .gold {
+      font-size: 18px;
+    }
+
+    .gold { color: #3f4f2d; font-weight: 800; }
     .danger { color: var(--red); }
     .success { color: var(--green); }
     .muted { color: var(--muted); }
@@ -150,8 +213,29 @@
       border: 1px solid var(--line);
       border-radius: 18px;
       padding: 16px;
-      background: rgba(33, 27, 24, 0.9);
-      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.24);
+      background: rgba(255, 253, 246, 0.9);
+      box-shadow: 0 18px 50px rgba(113, 128, 85, 0.22);
+    }
+
+    .panel.nes-container,
+    .modal.nes-container,
+    .card.nes-container,
+    .shop-card.nes-container {
+      border-radius: 0;
+      background: rgba(255, 253, 246, 0.96);
+      color: var(--text);
+    }
+
+    .nes-container.is-dark,
+    .nes-container.is-dark.with-title > .title {
+      color: var(--text);
+      background-color: var(--village-light);
+    }
+
+    .nes-btn {
+      margin: 0;
+      white-space: normal;
+      border-image-repeat: stretch !important;
     }
 
     .panel h2, .panel h3 {
@@ -169,6 +253,32 @@
     .section-title-row h3 { margin: 0; }
     .section-title-row h2 { margin: 0; }
 
+    .shop-gold-display {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: auto;
+      padding: 4px 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 253, 246, 0.82);
+      font-weight: 900;
+      font-size: 18px;
+    }
+
+    .shop-gold-icon,
+    .shop-gold-icon-svg {
+      display: block;
+      width: 32px;
+      height: 32px;
+    }
+
+    .shop-gold-icon-svg svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
     .half { grid-column: span 6; }
     .third { grid-column: span 4; }
     .two-third { grid-column: span 8; }
@@ -180,9 +290,9 @@
       margin-top: 12px;
     }
 
-    .primary {
-      border-color: #775923;
-      background: linear-gradient(180deg, #876324, #634719);
+    .primary:not(.nes-btn) {
+      border-color: #e7c65f;
+      background: linear-gradient(180deg, #DDEB9D, #A0C878);
       font-weight: 800;
     }
 
@@ -214,26 +324,219 @@
     .card strong { font-size: 17px; }
     .card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.35; }
 
-    .collection-card {
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 12px;
-      background: var(--panel-2);
-      min-height: 112px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+    #collectionList.card-list {
+      grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
     }
 
-    .collection-card header {
+    .compact-card {
+      --card-frame: var(--village-ink);
+      position: relative;
+      aspect-ratio: 5 / 7;
+      min-height: 146px;
+      padding: 8px;
+      border: 3px solid var(--card-frame);
+      background:
+        linear-gradient(135deg, rgba(255, 253, 246, 0.94), rgba(250, 246, 233, 0.78)),
+        var(--card-frame);
+      box-shadow: 0 8px 18px rgba(58, 75, 48, 0.16), inset 0 0 0 2px rgba(255, 253, 246, 0.68);
+      overflow: hidden;
+    }
+
+    .compact-card.Rare { --card-frame: var(--blue); }
+    .compact-card.Epic { --card-frame: var(--purple); }
+    .compact-card.Legendary { --card-frame: var(--gold); }
+
+    .compact-card-inner {
+      display: grid;
+      grid-template-rows: 14% minmax(0, 1fr) 22%;
+      gap: 5px;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .compact-card-title-block,
+    .compact-card-text-block {
+      border: 1px solid rgba(58, 75, 48, 0.22);
+      border-radius: 3px;
+      background: rgba(255, 253, 246, 0.7);
+    }
+
+    .compact-card-text-block {
+      background: rgba(250, 246, 233, 0.82);
+    }
+
+    .compact-card-art {
+      display: grid;
+      place-items: center;
+      width: 100%;
+      height: 100%;
+      border: 1px solid rgba(58, 75, 48, 0.24);
+      border-radius: 4px;
+      background: rgba(255, 253, 246, 0.42);
+      overflow: hidden;
+    }
+
+    .compact-card-icon {
+      display: block;
+      position: relative;
+      width: clamp(56px, 68%, 96px) !important;
+      aspect-ratio: 1;
+      height: auto !important;
+      filter: drop-shadow(0 6px 0 rgba(58, 75, 48, 0.14));
+    }
+
+    .compact-card-icon svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .compact-card-count {
+      position: absolute;
+      right: 6px;
+      bottom: 6px;
+      padding: 3px 6px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.56);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 900;
+      text-align: center;
+    }
+
+    .collection-card {
+      --card-frame: var(--village-ink);
+      position: relative;
+      aspect-ratio: 5 / 7;
+      min-height: 280px;
+      padding: 8px;
+      border: 3px solid var(--card-frame);
+      background:
+        linear-gradient(135deg, rgba(255, 253, 246, 0.95), rgba(250, 246, 233, 0.84)),
+        var(--card-frame);
+      box-shadow: 0 10px 22px rgba(58, 75, 48, 0.18), inset 0 0 0 2px rgba(255, 253, 246, 0.76);
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    .collection-card.Rare { --card-frame: var(--blue); }
+    .collection-card.Epic { --card-frame: var(--purple); }
+    .collection-card.Legendary { --card-frame: var(--gold); }
+
+    .collection-card-inner {
+      display: grid;
+      grid-template-rows: 58px minmax(0, 1fr) 94px;
+      gap: 7px;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .collection-card-top {
       display: flex;
       justify-content: space-between;
-      gap: 8px;
-      align-items: start;
+      gap: 10px;
+      align-items: center;
+      padding: 8px;
+      border: 1px solid rgba(58, 75, 48, 0.28);
+      border-radius: 4px;
+      background: linear-gradient(180deg, rgba(255, 253, 246, 0.96), rgba(250, 246, 233, 0.9));
+      min-height: 0;
+      overflow: hidden;
     }
 
-    .collection-card strong { font-size: 17px; }
-    .collection-card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.35; }
+    .collection-card strong {
+      font-size: 17px;
+      line-height: 1.2;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .collection-card-cost {
+      flex: 0 0 auto;
+      padding: 4px 7px;
+      border: 1px solid currentColor;
+      border-radius: 999px;
+      color: var(--card-frame);
+      font-size: 12px;
+      font-weight: 800;
+      background: rgba(255, 253, 246, 0.84);
+    }
+
+    .collection-card-art {
+      display: grid;
+      place-items: center;
+      min-height: 0;
+      border: 2px solid rgba(58, 75, 48, 0.32);
+      border-radius: 4px;
+      box-shadow: inset 0 0 0 3px rgba(255, 253, 246, 0.42);
+      overflow: hidden;
+    }
+
+    .collection-card-icon {
+      display: block;
+      position: relative;
+      width: clamp(72px, 42%, 160px) !important;
+      aspect-ratio: 1;
+      height: auto !important;
+      filter: drop-shadow(0 8px 0 rgba(58, 75, 48, 0.14));
+    }
+
+    .collection-card-icon svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .collection-card-text {
+      min-height: 0;
+      padding: 8px 9px 24px;
+      border: 1px solid rgba(58, 75, 48, 0.28);
+      border-radius: 4px;
+      background: rgba(250, 246, 233, 0.92);
+      overflow: hidden;
+    }
+
+    .collection-card-text .rarity { display: inline-block; margin-bottom: 5px; }
+    .collection-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .collection-card-count {
+      position: absolute;
+      right: 8px;
+      bottom: 7px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.56);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 900;
+      text-align: center;
+    }
+
+    .modal.card-detail-modal {
+      width: fit-content;
+      max-width: 92vw;
+    }
+
+    .card-detail-content {
+      display: grid;
+      place-items: center;
+    }
+
+    .card-detail-content .collection-card {
+      width: min(320px, 78vw);
+      min-height: 448px;
+    }
 
     .rarity {
       font-size: 12px;
@@ -243,30 +546,118 @@
       white-space: nowrap;
     }
 
-    .Common { color: #d7c4ae; }
+    .Common { color: var(--village-ink); }
     .Rare { color: var(--blue); }
     .Epic { color: var(--purple); }
     .Legendary { color: var(--gold); }
 
     .battle-cards {
+      position: relative;
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
+      grid-template-rows: 1fr 1fr;
+      gap: 18px;
+      min-height: 300px;
       margin: 14px 0;
+      padding: 18px;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse at 78% 24%, rgba(255, 253, 246, 0.48), transparent 7rem),
+        radial-gradient(ellipse at 22% 78%, rgba(221, 235, 157, 0.5), transparent 8rem),
+        linear-gradient(180deg, rgba(221, 235, 157, 0.5), rgba(160, 200, 120, 0.64));
+      border: 1px solid var(--line);
+      border-radius: 18px;
+    }
+
+    .battle-side {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      min-height: 120px;
+      min-width: 0;
+    }
+
+    .enemy-side {
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    .player-side {
+      justify-content: flex-start;
+      align-items: flex-end;
+      gap: 52px;
+    }
+
+    .player-side .battle-sprite {
+      margin-right: 0;
+      z-index: 2;
+    }
+
+    .player-thought-chain {
+      display: flex;
+      align-items: flex-end;
+      gap: 0px;
+      min-width: 0;
+    }
+
+    .player-thought-chain .player-thought-step + .player-thought-step {
+      margin-left: -7px;
+    }
+
+    .battle-sprite {
+      margin: clamp(18px, 4vw, 32px);
+      z-index: 1;
+    }
+
+    #enemyBattleSprite { --hero-sprite-scale: 7; }
+    #playerBattleSprite { --hero-sprite-scale: 10; }
+
+    .enemy-number-cluster {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .player-thought {
+      position: relative;
+      min-width: 0;
+      width: clamp(118px, 28vw, 190px);
+      padding: 6px;
+    }
+
+    .player-thought-step {
+      flex: 0 0 auto;
+      border: 4px solid #fff;
+      background: var(--village-light);
+      position: relative;
+      z-index: 1;
+    }
+
+    .player-thought-step.small {
+      width: 14px;
+      height: 14px;
+      margin-right: 16px;
+    }
+
+    .player-thought-step.large {
+      width: 24px;
+      height: 24px;
+      margin-bottom: 4px;
     }
 
     .number-card {
-      min-height: 150px;
-      border: 1px solid var(--line);
-      border-radius: 18px;
+      width: clamp(96px, 22vw, 130px);
+      min-width: 0;
+      min-height: 108px;
+      box-sizing: border-box;
+      padding: 1rem 0.75rem;
       display: grid;
       place-items: center;
       text-align: center;
-      background: linear-gradient(160deg, #30241f, #191310);
       transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
     }
 
-    .number-card > div {
+    .number-card .number-card-content {
       width: 100%;
       display: grid;
       place-items: center;
@@ -274,20 +665,27 @@
 
     .number-card.targetable {
       cursor: pointer;
-      border-color: var(--gold);
-      box-shadow: 0 0 0 3px rgba(242, 189, 75, 0.18), 0 0 28px rgba(242, 189, 75, 0.18);
+      box-shadow: 0 0 0 3px rgba(160, 200, 120, 0.24), 0 0 28px rgba(160, 200, 120, 0.24);
     }
 
     .number-card.targetable:hover {
       transform: translateY(-4px) scale(1.02);
     }
 
-    .number-card.player-success {
-      animation: successPulse 0.9s ease both;
+    .nes-container.is-dark.number-card.player-success {
+      border-color: var(--green) !important;
     }
 
-    .number-card.player-fail {
-      animation: failShake 0.8s ease both;
+    .nes-container.is-dark.number-card.player-fail {
+      border-color: var(--red) !important;
+    }
+
+    .player-thought-chain:has(.number-card.player-success) {
+      animation: numberWinNudge 0.42s ease both;
+    }
+
+    .player-thought-chain:has(.number-card.player-fail) {
+      animation: numberFailShake 0.32s ease both;
     }
 
     .battle-panel.entering {
@@ -295,17 +693,18 @@
     }
 
     .number-card .num {
-      font-size: clamp(44px, 10vw, 78px);
+      font-size: clamp(24px, 6vw, 48px);
       font-weight: 900;
       width: 100%;
       text-align: center;
       line-height: 1;
+      margin-top: 4px;
+      overflow: hidden;
+      white-space: nowrap;
     }
 
-    .number-card small {
-      display: block;
+    .number-card > .title {
       color: var(--muted);
-      text-align: center;
     }
 
     .log {
@@ -314,7 +713,7 @@
       border: 1px solid var(--line);
       border-radius: 12px;
       padding: 10px;
-      background: rgba(0, 0, 0, 0.16);
+      background: rgba(250, 246, 233, 0.62);
       color: var(--muted);
       line-height: 1.45;
     }
@@ -333,7 +732,7 @@
       border: 1px solid var(--line);
       border-radius: 10px;
       padding: 8px 10px;
-      background: rgba(0, 0, 0, 0.14);
+      background: rgba(250, 246, 233, 0.58);
     }
 
     .deck-summary-item strong {
@@ -356,7 +755,7 @@
       border: 1px solid var(--gold);
       border-radius: 14px;
       padding: 10px 12px;
-      background: rgba(242, 189, 75, 0.11);
+      background: rgba(221, 235, 157, 0.26);
       color: var(--gold);
     }
 
@@ -377,8 +776,8 @@
       border: 1px solid var(--line);
       border-radius: 22px;
       padding: 18px;
-      background: linear-gradient(160deg, #2a211c, #15100e);
-      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.52);
+      background: linear-gradient(160deg, #FFFDF6, #FAF6E9);
+      box-shadow: 0 24px 80px rgba(113, 128, 85, 0.42);
     }
 
     .chests {
@@ -391,36 +790,73 @@
     .chest {
       min-height: 120px;
       font-size: 44px;
-      border-color: #806229;
-      background: linear-gradient(180deg, #74551f, #382715);
+      border-color: #e7c65f;
+      background: linear-gradient(180deg, #DDEB9D, #A0C878);
     }
 
     .shop-items {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 14px;
+      justify-content: center;
       margin: 14px 0;
     }
 
+    #shopModal.modal-backdrop {
+      overflow-y: auto;
+    }
+
+    #shopModal .modal {
+      overflow: visible;
+      max-height: none;
+    }
+
+    @media (min-width: 860px) {
+      .shop-items {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+    }
+
     .shop-card {
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 12px;
-      background: var(--panel-2);
+      position: relative;
       display: flex;
       flex-direction: column;
       gap: 10px;
-      min-height: 160px;
     }
 
-    .shop-card header {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      align-items: start;
+    .shop-card.sold::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      border-radius: 4px;
+      background: rgba(80, 80, 80, 0.52);
+      pointer-events: none;
     }
 
-    .shop-card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.35; }
+    .shop-card.sold button {
+      position: relative;
+      z-index: 3;
+    }
+
+    .shop-card .collection-card {
+      width: 100%;
+      min-height: 238px;
+    }
+
+    .shop-card .collection-card-inner {
+      grid-template-rows: 46px minmax(0, 1fr) 76px;
+      gap: 6px;
+    }
+
+    .shop-card .collection-card-top,
+    .shop-card .collection-card-text {
+      padding: 6px;
+    }
+
+    .shop-card .collection-card strong { font-size: 14px; }
+    .shop-card .collection-card-cost { font-size: 10px; padding: 3px 5px; }
+    .shop-card .collection-card p { font-size: 11px; -webkit-line-clamp: 3; }
 
     .gacha-results {
       display: grid;
@@ -444,16 +880,15 @@
 
     .mobile-hand-preview { display: none; }
 
-    @keyframes successPulse {
-      0% { transform: scale(1); box-shadow: none; border-color: var(--line); }
-      45% { transform: scale(1.08); box-shadow: 0 0 40px rgba(121, 199, 123, 0.48); border-color: var(--green); }
-      100% { transform: scale(1); box-shadow: 0 0 20px rgba(121, 199, 123, 0.28); border-color: var(--green); }
+    @keyframes numberWinNudge {
+      0%, 100% { transform: translateY(0); }
+      45% { transform: translateY(-8px); }
     }
 
-    @keyframes failShake {
-      0%, 100% { transform: translateX(0); border-color: var(--red); box-shadow: 0 0 18px rgba(229, 107, 111, 0.25); }
-      18%, 54% { transform: translateX(-10px); }
-      36%, 72% { transform: translateX(10px); }
+    @keyframes numberFailShake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-5px); }
+      40%, 80% { transform: translateX(5px); }
     }
 
     @keyframes floorEnter {
@@ -471,6 +906,11 @@
       8%, 25%, 42%, 59%, 76%, 100% { opacity: 1; }
     }
 
+    @keyframes heroSpriteDeath {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(16px); }
+    }
+
     .hidden { display: none !important; }
 
     body:not(.home-active) .topbar > .pill-row { display: none; }
@@ -478,15 +918,30 @@
     @media (max-width: 760px) {
       .app { padding: 14px 14px 260px; }
       .topbar { align-items: flex-start; flex-direction: column; }
-      .hero-title-sprite { transform: scale(2); }
+      .hero-title-sprite { --hero-sprite-scale: 2; }
       .half, .third, .two-third { grid-column: span 12; }
       #battleView .panel:nth-child(1) { order: 1; }
       #battleView .panel:nth-child(2) { order: 3; }
       #battleView .panel:nth-child(3) { order: 2; }
-      .battle-cards { grid-template-columns: 1fr 1fr; }
-      .battle-cards .number-card:nth-child(2) { grid-column: span 2; order: 3; }
-      .number-card { min-height: 116px; }
-      .card-list { grid-template-columns: 1fr; }
+      .battle-cards {
+        min-height: 260px;
+        padding: 12px;
+        gap: 10px;
+      }
+      .battle-side { gap: 8px; min-height: 108px; }
+      .player-side { gap: 40px; }
+      .player-side .battle-sprite { margin-right: 0; }
+      .player-thought-chain { gap: 0px; }
+      .player-thought-chain .player-thought-step + .player-thought-step { margin-left: -3px; }
+      .battle-sprite { margin: 18px; }
+      #enemyBattleSprite { --hero-sprite-scale: 4.25; }
+      #playerBattleSprite { --hero-sprite-scale: 8.5; }
+      .enemy-number-cluster { gap: 6px; }
+      .player-thought-step.small { width: 10px; height: 10px; border-width: 4px; margin-right: 12px }
+      .player-thought-step.large { width: 18px; height: 18px; border-width: 4px; margin-bottom: 4px }
+      .number-card { width: clamp(82px, 28vw, 118px); min-height: 96px; padding: 1rem 0.4rem; }
+      .player-thought { width: clamp(86px, 31vw, 130px); padding: 4px; }
+      .number-card .num { font-size: clamp(20px, 9vw, 48px); }
       #deckView .panel:nth-child(2) { order: 3; }
       #deckView .panel:nth-child(3) { order: 2; }
       #deckView .card-list {
@@ -513,13 +968,7 @@
         overflow: hidden;
       }
       #collectionList.card-list { gap: 8px; }
-      .collection-card {
-        cursor: pointer;
-        min-height: 0;
-        padding: 10px 12px;
-      }
-      .collection-card-detail { display: none; }
-      .collection-card.expanded .collection-card-detail { display: block; }
+      .compact-card { min-height: 136px; }
       .card button, .actions button { min-height: 46px; }
       .chests { grid-template-columns: 1fr; }
       .chest { min-height: 84px; }
@@ -529,16 +978,7 @@
       .shop-items { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .gacha-results { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .gacha-results.single { grid-template-columns: minmax(0, 260px); }
-      .shop-card {
-        min-height: 120px;
-        padding: 10px;
-      }
-      .shop-card p {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-      }
+      .shop-card .collection-card { min-height: 230px; }
       body.battle-view-active #handPanel {
         position: fixed;
         left: 0;
@@ -549,8 +989,8 @@
         max-height: 255px;
         overflow: hidden;
         padding: 12px 12px 10px;
-        background: rgba(33, 27, 24, 0.98);
-        box-shadow: 0 -18px 44px rgba(0, 0, 0, 0.42);
+        background: rgba(255, 253, 246, 0.98);
+        box-shadow: 0 -18px 44px rgba(113, 128, 85, 0.3);
       }
       body.battle-view-active #handPanel h2 {
         margin-bottom: 8px;
@@ -575,12 +1015,12 @@
         padding: 9px;
         overflow: hidden;
         scroll-snap-align: center;
-        box-shadow: -8px 0 18px rgba(0, 0, 0, 0.18);
+        box-shadow: -8px 0 18px rgba(113, 128, 85, 0.16);
       }
       body.battle-view-active #handList .card.selected {
         transform: scale(1.04);
         border-color: var(--gold);
-        box-shadow: 0 0 0 2px rgba(242, 189, 75, 0.22), -8px 0 18px rgba(0, 0, 0, 0.22);
+        box-shadow: 0 0 0 2px rgba(160, 200, 120, 0.28), -8px 0 18px rgba(113, 128, 85, 0.2);
       }
       body.battle-view-active #handList .card header {
         display: block;
@@ -600,7 +1040,7 @@
         border: 1px solid var(--line);
         border-radius: 14px;
         padding: 10px;
-        background: rgba(0, 0, 0, 0.18);
+        background: rgba(250, 246, 233, 0.72);
       }
       body.battle-view-active .mobile-hand-preview strong {
         font-size: 16px;
@@ -621,155 +1061,7 @@
   </style>
 </head>
 <body>
-  <main class="app">
-    <div class="topbar">
-      <div class="brand">
-        <h1><span id="heroTitleSprite" class="hero-title-sprite" aria-hidden="true"></span>In-Between Hero</h1>
-        <p>單人 Roguelike 卡牌 MVP</p>
-      </div>
-      <div class="pill-row">
-        <span class="pill">Gold <span id="gold" class="gold">0</span></span>
-        <span class="pill">Deck Cost <span id="deckCost">0 / 30</span></span>
-        <button id="resetBtn">重置存檔</button>
-      </div>
-    </div>
-
-    <section id="homeView" class="grid">
-      <div class="panel two-third">
-        <h2>首頁</h2>
-        <p class="muted">編組 Cost 不超過 30 的討伐牌組，進入 30 層旅程。使用過的卡會永久消失；失敗會失去本次討伐帶入與獲得的所有卡牌和金幣。</p>
-        <div class="actions">
-          <button id="startRunBtn" class="primary">開始討伐</button>
-          <button id="showDeckBtn">編組牌庫</button>
-          <button id="openShopBtn">商店</button>
-          <button id="debugDefendBtn">Debug 防禦動畫</button>
-        </div>
-        <p id="homeMessage" class="muted"></p>
-      </div>
-      <div class="panel third">
-        <h3>目前編組</h3>
-        <div id="deckSummary" class="log"></div>
-      </div>
-      <div class="panel">
-        <h2>收藏卡牌</h2>
-        <div id="collectionList" class="card-list"></div>
-      </div>
-    </section>
-
-    <section id="deckView" class="grid hidden">
-      <div class="panel">
-        <h2>編組牌庫</h2>
-        <p class="muted">點擊收藏中的卡牌加入編組；點擊編組中的卡牌移回收藏。總 Cost 必須 <= 30。</p>
-        <div class="actions">
-          <button id="backHomeFromDeck">返回首頁</button>
-          <button id="startRunFromDeck" class="primary">用目前編組開始討伐</button>
-        </div>
-      </div>
-      <div class="panel half">
-        <h3>可用收藏</h3>
-        <div id="deckCollectionList" class="card-list"></div>
-      </div>
-      <div class="panel half">
-        <div class="section-title-row">
-          <h3>本次討伐牌組</h3>
-          <span class="pill">Deck Cost <span id="deckBuildCost">0 / 30</span></span>
-        </div>
-        <div id="deckList" class="card-list"></div>
-      </div>
-    </section>
-
-    <section id="battleView" class="grid hidden">
-      <div id="battlePanel" class="panel two-third battle-panel">
-        <div class="pill-row">
-          <span class="pill">Floor <strong id="floorText">1</strong> / 30</span>
-          <span class="pill">Enemy <strong id="enemyName">Slime</strong></span>
-          <span class="pill">Run Gold <strong id="runGold" class="gold">0</strong></span>
-          <span class="pill">Win Rule <strong id="winRule">Inside</strong></span>
-        </div>
-        <div class="battle-cards">
-          <div id="enemyLeftCard" class="number-card"><div><small>Enemy Left</small><div id="enemyLeft" class="num">0</div></div></div>
-          <div id="playerNumberCard" class="number-card"><div><small>Your Card</small><div id="playerCard" class="num">?</div></div></div>
-          <div id="enemyRightCard" class="number-card"><div><small>Enemy Right</small><div id="enemyRight" class="num">0</div></div></div>
-        </div>
-        <div class="actions">
-          <button id="revealBtn" class="primary">戰鬥</button>
-          <button id="cancelTargetBtn" class="hidden">取消選擇</button>
-          <button id="settleDefeatBtn" class="hidden primary">前往結算</button>
-          <button id="retreatAfterWinBtn" class="hidden">撤退</button>
-          <button id="continueAfterWinBtn" class="hidden primary">繼續下一層</button>
-          <button id="scoutRetreatBtn" class="hidden">撤退</button>
-          <button id="scoutContinueBtn" class="hidden primary">繼續戰鬥</button>
-        </div>
-        <div id="targetBanner" class="target-banner hidden"></div>
-        <p id="battleMessage" class="muted"></p>
-      </div>
-      <div class="panel third">
-        <h3>已發動紀錄</h3>
-        <div id="usedLog" class="log"></div>
-      </div>
-      <div id="handPanel" class="panel">
-        <div class="section-title-row">
-          <h2>目前手牌</h2>
-          <div class="pill-row">
-            <span class="pill">牌庫剩餘 <span id="runDeckCount">0</span></span>
-            <span class="pill">棄牌區 <span id="discardCount">0</span></span>
-          </div>
-        </div>
-        <div id="mobileHandPreview" class="mobile-hand-preview"></div>
-        <div id="handList" class="card-list"></div>
-      </div>
-    </section>
-
-    <section id="resultView" class="grid hidden">
-      <div class="panel">
-        <h2>結算畫面</h2>
-        <div id="resultBox" class="result-box"></div>
-        <div class="actions">
-          <button id="returnHomeBtn" class="primary">Return Home</button>
-        </div>
-      </div>
-    </section>
-    <div id="supplyModal" class="modal-backdrop hidden">
-      <div class="modal">
-        <h2>緊急補給</h2>
-        <p class="muted">你已經沒有 Gold，也沒有可編組卡牌。選擇一個寶箱，補給內容將依機率決定。</p>
-        <div class="chests">
-          <button class="chest" data-chest="1">寶箱 I</button>
-          <button class="chest" data-chest="2">寶箱 II</button>
-          <button class="chest" data-chest="3">寶箱 III</button>
-        </div>
-        <p id="supplyMessage" class="muted"></p>
-        <div class="actions">
-          <button id="confirmSupplyBtn" class="primary hidden">確認</button>
-        </div>
-      </div>
-    </div>
-    <div id="shopModal" class="modal-backdrop hidden">
-      <div class="modal">
-        <div class="section-title-row">
-          <h2>商店</h2>
-          <button id="closeShopBtn">關閉</button>
-        </div>
-        <p class="muted">購買目前陳列的卡牌，或花 20 Gold 抽一張隨機卡。</p>
-        <div id="shopItems" class="shop-items"></div>
-        <div class="actions">
-          <button id="shopGachaBtn" class="primary">抽卡 20 Gold</button>
-          <button id="shopTenGachaBtn" class="primary">十連抽 200 Gold</button>
-        </div>
-        <p id="shopMessage" class="muted"></p>
-      </div>
-    </div>
-    <div id="gachaResultModal" class="modal-backdrop hidden">
-      <div class="modal">
-        <h2>獲得卡牌</h2>
-        <div id="gachaResultList" class="gacha-results"></div>
-        <div class="actions">
-          <button id="confirmGachaResultBtn" class="primary">確認</button>
-        </div>
-      </div>
-    </div>
-  </main>
-
-  <script type="module" src="./src/main.js"></script>
+  <div id="root"></div>
+  <script type="module" src="/src/App.jsx"></script>
 </body>
 </html>

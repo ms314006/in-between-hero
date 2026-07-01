@@ -17,7 +17,7 @@ export const CARDS = [
   { id: "echo", name: "魔法迴響", rarity: "Epic", cost: 1, desc: "再次發動上一張使用過的魔法卡", source: "抽卡" },
   { id: "omniscience", name: "貪婪之眼", rarity: "Epic", cost: 2, desc: "立即抽三張牌", source: "Boss" },
   { id: "stasis", name: "命運凝滯", rarity: "Legendary", cost: 2, desc: "Reveal 後若失敗，可重新使用魔法卡並再次判定一次", source: "Boss" },
-  { id: "balance", name: "命運天秤", rarity: "Legendary", cost: 2, desc: "將自己的棄牌區與牌庫中的卡牌交換", source: "Boss" },
+  { id: "balance", name: "命運羅盤", rarity: "Legendary", cost: 2, desc: "將自己的棄牌區與牌庫中的卡牌交換", source: "Boss" },
   { id: "chaos", name: "混沌風暴", rarity: "Legendary", cost: 2, desc: "敵方兩張數字牌全部重新生成", source: "Boss" },
   { id: "world", name: "世界重構", rarity: "Legendary", cost: 2, desc: "將敵方兩張數字牌變成 0 與 100", source: "Boss" }
 ];

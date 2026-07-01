@@ -1,4 +1,4 @@
-let spriteTimerId = 0;
+const spriteTimers = new WeakMap();
 
 export function frameToBackgroundPosition(sprite, frame) {
   const [row, col] = frame;
@@ -7,32 +7,43 @@ export function frameToBackgroundPosition(sprite, frame) {
 
 export function playSpriteAction(element, sprite, actionName) {
   const action = sprite.actions[actionName];
-  if (!element || !action) return;
+  if (!element || !action) return Promise.resolve();
 
-  clearInterval(spriteTimerId);
-  element.classList.toggle("defending", actionName === "defend");
-  element.style.setProperty("--sprite-image", `url("${sprite.image}")`);
-  let frameIndex = 0;
+  return new Promise(resolve => {
+    clearTimeout(spriteTimers.get(element));
+    element.classList.toggle("defending", actionName === "defend");
+    element.classList.remove("dying");
+    if (action.effect?.type === "fallDown") void element.offsetWidth;
+    element.style.setProperty("--sprite-image", `url("${sprite.image}")`);
+    let frameIndex = 0;
 
-  const showFrame = () => {
-    const position = frameToBackgroundPosition(sprite, action.frames[frameIndex]);
-    element.style.setProperty("--sprite-position", position);
-    frameIndex += 1;
+    const finish = () => {
+      spriteTimers.delete(element);
+      element.classList.remove("defending");
+      if (action.effect?.type !== "fallDown" || action.returnTo !== false) element.classList.remove("dying");
+      if (action.returnTo !== false) playSpriteAction(element, sprite, "idle");
+      resolve();
+    };
 
-    if (frameIndex >= action.frames.length) {
-      if (action.loop) {
-        frameIndex = 0;
-        return;
+    const showFrame = () => {
+      const position = frameToBackgroundPosition(sprite, action.frames[frameIndex]);
+      element.style.setProperty("--sprite-position", position);
+      if (action.effect?.type === "fallDown") {
+        element.classList.add("dying");
       }
-      clearInterval(spriteTimerId);
-      spriteTimerId = 0;
-      setTimeout(() => {
-        element.classList.remove("defending");
-        playSpriteAction(element, sprite, "idle");
-      }, action.frameDuration);
-    }
-  };
+      frameIndex += 1;
 
-  showFrame();
-  spriteTimerId = setInterval(showFrame, action.frameDuration);
+      if (frameIndex >= action.frames.length) {
+        if (action.loop) {
+          frameIndex = 0;
+        } else {
+          spriteTimers.set(element, setTimeout(finish, action.frameDuration));
+          return;
+        }
+      }
+      spriteTimers.set(element, setTimeout(showFrame, action.frameDuration));
+    };
+
+    showFrame();
+  });
 }
